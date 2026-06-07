@@ -15,11 +15,15 @@ struct SettingsView: View {
 
     @State private var pendingDestructiveAction: DestructiveAction?
     @State private var actionResult: SettingsActionResult?
+    @State private var apiKeyInput = ""
+    @State private var hasStoredAPIKey = false
+    @State private var isTestingAIConnection = false
 
     private let memoryEngine = MemoryEngine()
     private let progressService = QuestProgressService()
     private let dailyReviewService = DailyReviewService()
     private let chatHistoryService = ChatHistoryService()
+    private let apiKeyStore = KeychainAPIKeyStore()
 
     private var questSummary: QuestCollectionSummary {
         progressService.questSummary(for: quests)
@@ -147,6 +151,43 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("AI 模式") {
+                    LabeledContent("当前模式", value: hasStoredAPIKey ? "真实 AI" : "本地模式")
+
+                    SecureField("OpenAI API Key", text: $apiKeyInput)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+
+                    HStack {
+                        Button("保存 Key") {
+                            saveAPIKey()
+                        }
+                        .disabled(cleanedAPIKeyInput.isEmpty)
+
+                        Button("删除 Key", role: .destructive) {
+                            deleteAPIKey()
+                        }
+                        .disabled(!hasStoredAPIKey)
+                    }
+
+                    Button {
+                        Task {
+                            await testAIConnection()
+                        }
+                    } label: {
+                        if isTestingAIConnection {
+                            Label("测试中", systemImage: "hourglass")
+                        } else {
+                            Label("测试连接", systemImage: "bolt.horizontal.circle")
+                        }
+                    }
+                    .disabled(isTestingAIConnection || (!hasStoredAPIKey && cleanedAPIKeyInput.isEmpty))
+
+                    Text("Key 只保存在本机 Keychain。开启真实 AI 后，对话会发送必要上下文到 OpenAI。")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("数据") {
                     Button("重置演示数据", role: .destructive) {
                         pendingDestructiveAction = .resetDemoData
@@ -175,12 +216,12 @@ struct SettingsView: View {
 
                 Section("隐私说明") {
                     Text("""
-                    - 第一阶段不读取其他 App。
-                    - 第一阶段不录音。
-                    - 第一阶段不联网。
-                    - 第一阶段不接入真实 AI API。
-                    - 所有数据仅存在本地 SwiftData。
-                    - 后续接入权限时应逐项授权。
+                    - 默认不读取其他 App。
+                    - 默认不录音、不定位、不接入健康或日历。
+                    - 未配置 OpenAI API Key 时，对话只使用本地模式。
+                    - 配置 Key 后，对话会把必要上下文发送到 OpenAI：用户/药老设定、当前主线、今日任务、逾期任务、最近确认记忆和近几篇复盘摘要。
+                    - API Key 只保存在本机 Keychain，不写入 SwiftData。
+                    - AI 只能提出建议，记忆和任务仍需你点击确认后才会写入本地。
                     """)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -228,7 +269,14 @@ struct SettingsView: View {
                 normalizeEditableProfiles()
                 try? modelContext.save()
             }
+            .onAppear {
+                refreshAPIKeyState()
+            }
         }
+    }
+
+    private var cleanedAPIKeyInput: String {
+        apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func normalizeEditableProfiles() {
@@ -308,6 +356,120 @@ struct SettingsView: View {
 
         pendingDestructiveAction = nil
         actionResult = actionFeedback
+    }
+
+    private func refreshAPIKeyState() {
+        hasStoredAPIKey = apiKeyStore.load() != nil
+    }
+
+    private func saveAPIKey() {
+        do {
+            try apiKeyStore.save(cleanedAPIKeyInput)
+            apiKeyInput = ""
+            refreshAPIKeyState()
+            actionResult = SettingsActionResult(
+                title: "已保存",
+                message: "OpenAI API Key 已保存到本机 Keychain。"
+            )
+        } catch APIKeyStoreError.emptyKey {
+            actionResult = SettingsActionResult(
+                title: "无法保存",
+                message: "API Key 不能为空。"
+            )
+        } catch {
+            actionResult = SettingsActionResult(
+                title: "无法保存",
+                message: "Keychain 写入失败：\(error.localizedDescription)"
+            )
+        }
+    }
+
+    private func deleteAPIKey() {
+        do {
+            try apiKeyStore.delete()
+            apiKeyInput = ""
+            refreshAPIKeyState()
+            actionResult = SettingsActionResult(
+                title: "已删除",
+                message: "OpenAI API Key 已从本机 Keychain 删除。"
+            )
+        } catch {
+            actionResult = SettingsActionResult(
+                title: "无法删除",
+                message: "Keychain 删除失败：\(error.localizedDescription)"
+            )
+        }
+    }
+
+    @MainActor
+    private func testAIConnection() async {
+        guard !isTestingAIConnection else {
+            return
+        }
+
+        let apiKey = cleanedAPIKeyInput.isEmpty ? apiKeyStore.load() : cleanedAPIKeyInput
+        guard let apiKey, !apiKey.isEmpty else {
+            actionResult = SettingsActionResult(
+                title: "无法测试",
+                message: "请先填写或保存 OpenAI API Key。"
+            )
+            return
+        }
+
+        isTestingAIConnection = true
+        defer {
+            isTestingAIConnection = false
+        }
+
+        do {
+            _ = try await OpenAIClient(apiKey: apiKey).sendMessage(
+                userMessage: "连接测试",
+                context: testConnectionContext()
+            )
+            actionResult = SettingsActionResult(
+                title: "连接成功",
+                message: "真实 AI 模式可用。"
+            )
+        } catch {
+            actionResult = SettingsActionResult(
+                title: "连接失败",
+                message: "暂时无法连接 OpenAI；对话页仍会自动回退本地模式。"
+            )
+        }
+    }
+
+    private func testConnectionContext() -> AIRequestContext {
+        AIRequestContext(
+            userName: users.first?.name ?? "智",
+            companionName: companions.first?.name ?? "药老",
+            userLevel: users.first?.level ?? 1,
+            currentXP: users.first?.currentXP ?? 0,
+            activeQuestTitles: progressService.activeQuests(from: quests).prefix(3).map {
+                progressService.displayQuestTitle(for: $0)
+            },
+            todayTaskTitles: progressService.actionOrderedTodayTasks(from: tasks).prefix(5).map {
+                progressService.displayTaskTitle(for: $0)
+            },
+            completedTodayTaskTitles: [],
+            overdueTaskTitles: progressService.actionOrderedOverdueTasks(from: tasks).prefix(3).map {
+                progressService.displayTaskTitle(for: $0)
+            },
+            recentMemories: memoryEngine.queryMemories(memories, confirmedOnly: true).prefix(3).map {
+                memoryEngine.displayContent(for: $0)
+            },
+            recentDailyReports: reviewContext(limit: 2)
+        )
+    }
+
+    private func reviewContext(limit: Int) -> [String] {
+        Array(
+            dailyReviewService.sortedReportsNewestFirst(reports)
+                .compactMap { report -> String? in
+                    let contextText = dailyReviewService.contextText(for: report)
+                    return contextText.isEmpty ? nil : contextText
+                }
+                .prefix(limit)
+        )
     }
 
     private func createDefaultUser() {

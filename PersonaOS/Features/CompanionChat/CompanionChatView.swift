@@ -19,8 +19,9 @@ struct CompanionChatView: View {
     @State private var riskFlags: [String] = []
     @State private var messageRoleFilter: ChatHistoryRoleFilter = .all
     @State private var searchText = ""
+    @State private var sendTask: Task<Void, Never>?
 
-    private let aiClient = MockAIClient()
+    private let aiClientFactory = AIClientFactory()
     private let chatHistoryService = ChatHistoryService()
     private let suggestionSanitizer = AISuggestionSanitizer()
     private let memoryEngine = MemoryEngine()
@@ -122,9 +123,7 @@ struct CompanionChatView: View {
                 Divider()
 
                 QuickPromptBar(isDisabled: isSending) { prompt in
-                    Task {
-                        await sendMessage(prompt)
-                    }
+                    startSending(prompt)
                 }
 
                 HStack(spacing: 10) {
@@ -132,22 +131,56 @@ struct CompanionChatView: View {
                         .textFieldStyle(.roundedBorder)
                         .lineLimit(1...4)
 
-                    Button {
-                        Task {
-                            await sendMessage(inputText)
+                    if isSending {
+                        Button {
+                            cancelSending()
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
                         }
-                    } label: {
-                        Image(systemName: isSending ? "hourglass" : "paperplane.fill")
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel("取消回复")
+                    } else {
+                        Button {
+                            startSending(inputText)
+                        } label: {
+                            Image(systemName: "paperplane.fill")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(chatHistoryService.cleanOutgoingContent(inputText).isEmpty)
+                        .accessibilityLabel("发送")
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(chatHistoryService.cleanOutgoingContent(inputText).isEmpty || isSending)
-                    .accessibilityLabel("发送")
                 }
                 .padding()
                 .background(Color(.systemBackground))
             }
             .navigationTitle(companionDisplayName)
+            .onDisappear {
+                cancelSending()
+            }
         }
+    }
+
+    @MainActor
+    private func startSending(_ rawText: String) {
+        guard !isSending else {
+            return
+        }
+
+        let text = chatHistoryService.cleanOutgoingContent(rawText)
+        guard !text.isEmpty else {
+            return
+        }
+
+        sendTask = Task {
+            await sendMessage(text)
+        }
+    }
+
+    @MainActor
+    private func cancelSending() {
+        sendTask?.cancel()
+        sendTask = nil
+        isSending = false
     }
 
     @MainActor
@@ -162,6 +195,11 @@ struct CompanionChatView: View {
 
         inputText = ""
         isSending = true
+        defer {
+            isSending = false
+            sendTask = nil
+        }
+
         suggestedMemories = []
         suggestedTasks = []
         riskFlags = []
@@ -170,7 +208,13 @@ struct CompanionChatView: View {
         modelContext.insert(userMessage)
 
         do {
+            let aiClient = aiClientFactory.makeClient()
             let response = try await aiClient.sendMessage(userMessage: text, context: makeContext())
+            guard !Task.isCancelled else {
+                try? modelContext.save()
+                return
+            }
+
             let assistantMessage = ChatMessage(
                 role: ChatRole.assistant.rawValue,
                 content: response.assistantMessage
@@ -182,6 +226,16 @@ struct CompanionChatView: View {
                 .filter { !isDuplicateSuggestedTask(titled: $0) }
             riskFlags = suggestionSanitizer.cleanedUniqueItems(response.riskFlags)
         } catch {
+            if error is CancellationError {
+                let cancelledMessage = ChatMessage(
+                    role: ChatRole.system.rawValue,
+                    content: "已取消本次回复。"
+                )
+                modelContext.insert(cancelledMessage)
+                try? modelContext.save()
+                return
+            }
+
             let fallback = ChatMessage(
                 role: ChatRole.assistant.rawValue,
                 content: "本地模拟回复失败：\(error.localizedDescription)"
@@ -190,7 +244,6 @@ struct CompanionChatView: View {
         }
 
         try? modelContext.save()
-        isSending = false
     }
 
     private func makeContext() -> AIRequestContext {

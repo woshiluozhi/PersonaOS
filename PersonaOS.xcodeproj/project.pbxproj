@@ -24,12 +24,15 @@
 		000000000000000000000115 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000215 /* SettingsView.swift */; };
 		000000000000000000000116 /* ChatHistoryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000216 /* ChatHistoryService.swift */; };
 		000000000000000000000117 /* AISuggestionSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000217 /* AISuggestionSanitizer.swift */; };
+		000000000000000000000118 /* KeychainAPIKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000218 /* KeychainAPIKeyStore.swift */; };
+		000000000000000000000119 /* OpenAIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000219 /* OpenAIClient.swift */; };
 		000000000000000000000120 /* QuestProgressServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000220 /* QuestProgressServiceTests.swift */; };
 		000000000000000000000121 /* DailyReviewServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000221 /* DailyReviewServiceTests.swift */; };
 		000000000000000000000122 /* MemoryEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000222 /* MemoryEngineTests.swift */; };
 		000000000000000000000123 /* MockAIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000223 /* MockAIClientTests.swift */; };
 		000000000000000000000124 /* ChatHistoryServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000224 /* ChatHistoryServiceTests.swift */; };
 		000000000000000000000125 /* AISuggestionSanitizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000225 /* AISuggestionSanitizerTests.swift */; };
+		000000000000000000000126 /* OpenAIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000226 /* OpenAIClientTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,12 +63,15 @@
 		000000000000000000000215 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		000000000000000000000216 /* ChatHistoryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHistoryService.swift; sourceTree = "<group>"; };
 		000000000000000000000217 /* AISuggestionSanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISuggestionSanitizer.swift; sourceTree = "<group>"; };
+		000000000000000000000218 /* KeychainAPIKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainAPIKeyStore.swift; sourceTree = "<group>"; };
+		000000000000000000000219 /* OpenAIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIClient.swift; sourceTree = "<group>"; };
 		000000000000000000000220 /* QuestProgressServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestProgressServiceTests.swift; sourceTree = "<group>"; };
 		000000000000000000000221 /* DailyReviewServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReviewServiceTests.swift; sourceTree = "<group>"; };
 		000000000000000000000222 /* MemoryEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryEngineTests.swift; sourceTree = "<group>"; };
 		000000000000000000000223 /* MockAIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAIClientTests.swift; sourceTree = "<group>"; };
 		000000000000000000000224 /* ChatHistoryServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHistoryServiceTests.swift; sourceTree = "<group>"; };
 		000000000000000000000225 /* AISuggestionSanitizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISuggestionSanitizerTests.swift; sourceTree = "<group>"; };
+		000000000000000000000226 /* OpenAIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIClientTests.swift; sourceTree = "<group>"; };
 		000000000000000000000501 /* PersonaOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PersonaOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000502 /* PersonaOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PersonaOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -158,6 +164,7 @@
 				000000000000000000000223 /* MockAIClientTests.swift */,
 				000000000000000000000224 /* ChatHistoryServiceTests.swift */,
 				000000000000000000000225 /* AISuggestionSanitizerTests.swift */,
+				000000000000000000000226 /* OpenAIClientTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -183,6 +190,8 @@
 				000000000000000000000205 /* AIClient.swift */,
 				000000000000000000000217 /* AISuggestionSanitizer.swift */,
 				000000000000000000000216 /* ChatHistoryService.swift */,
+				000000000000000000000218 /* KeychainAPIKeyStore.swift */,
+				000000000000000000000219 /* OpenAIClient.swift */,
 				000000000000000000000206 /* QuestProgressService.swift */,
 				000000000000000000000207 /* MemoryEngine.swift */,
 				000000000000000000000208 /* DailyReviewService.swift */,
@@ -362,6 +371,8 @@
 				000000000000000000000115 /* SettingsView.swift in Sources */,
 				000000000000000000000116 /* ChatHistoryService.swift in Sources */,
 				000000000000000000000117 /* AISuggestionSanitizer.swift in Sources */,
+				000000000000000000000118 /* KeychainAPIKeyStore.swift in Sources */,
+				000000000000000000000119 /* OpenAIClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -375,6 +386,7 @@
 				000000000000000000000123 /* MockAIClientTests.swift in Sources */,
 				000000000000000000000124 /* ChatHistoryServiceTests.swift in Sources */,
 				000000000000000000000125 /* AISuggestionSanitizerTests.swift in Sources */,
+				000000000000000000000126 /* OpenAIClientTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
