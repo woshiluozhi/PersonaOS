@@ -1,0 +1,928 @@
+# PersonaOS MVP Codex Report
+
+## 1. 当前状态
+
+PersonaOS 已从空 Git 目录搭建为一个可编译的本地 iOS SwiftUI MVP。项目使用 SwiftData、本地 `MockAIClient`、无网络请求、无 API Key、无第三方依赖、无系统权限接入。
+
+当前主流程已经形成闭环：
+
+- 首页：RPG 状态面板、归一化资料展示、由非负 XP 推导的等级、当前 XP/距下一级 XP 展示文案、按完成日期计算的今日完成率、逾期任务数、今日计划 XP/逾期摘要、当前主线、清理后的药老点评兜底、今日行动建议与模型派生按钮文案、快速新增任务，并根据今天是否已有日报切换生成/更新总结入口。
+- 首页 Dashboard 数据会提供当前 XP、距下级 XP、今日完成率百分比和今日计划 XP 的派生展示文案，首屏文案不再在视图层重复计算或拼接单位。
+- 任务：任务线管理与编辑、任务新增/编辑/删除确认/完成/撤回完成、任务/任务线类型和任务线状态标题由服务层归一化展示、任务删除确认标题与正文由服务层生成并复用清理后标题兜底、任务/任务线表单标题保存前压缩空白、任务表单 XP 夹值、任务线优先级夹值、空白任务/进行中任务线/已关闭任务线过滤与清理后标题展示、任务/任务线详情清理后展示和搜索、XP 展示文案/搜索/排序非负兜底、XP 增减与等级回滚、任务范围筛选（全部/今日/逾期/主线/支线/每日，绑定到空白标题任务线的每日任务不会污染主线/支线范围）、多关键词任务搜索与清空（支持内容/类型/任务线/状态/非负 XP/创建日期/到期日期/完成日期/相对日期）、筛选摘要与设置页任务库存计数共用服务层任务摘要、任务归属到具体任务线、新增/编辑都会按任务类型限制可选任务线，编辑任务时会由服务层合并当前归属与可分配任务线并跳过空白标题、去重排序、每日任务可挂现有主线/支线、任务线关联进度（异常计数/XP/摘要文案会钳制，趋势完成数和 XP 文案由模型派生）、相对到期提示、逾期/今日到期视觉状态、未完成任务行动优先排序会在服务层排除已完成和空白旧记录，并在新增/编辑时提示同名未完成任务或今日同名任务；同名判断会归一化大小写、首尾空白、换行和连续空格；创建同名任务线时会复用/拦截已有进行中任务线；今日范围会排除非当天完成的旧每日任务，避免历史闭环污染今天的完成率和行动计划。
+- 任务线详情：查看单条任务线概览、关联任务进度、最近 7 天推进趋势、相关复盘线索、未完成/已完成任务，并可直接新增固定归属当前任务线的任务。
+- 任务线详情中的已完成任务与主任务页共用最近完成排序，最近闭环的任务会优先展示。
+- 已完成任务行会显示完成日期，与最近完成排序形成明确反馈。
+- 对话：本地药老模拟回复（会清理空白用户名/助手名/主线/记忆/日报上下文，默认回复可读取按日报日期排序的最近复盘线索）、快捷提示、逾期风险检查、今日任务闭环后的复盘建议、风险提示会通过 sanitizer 生成中文标题、候选记忆、行动建议一键加入今日任务并默认挂到当前主线，对话主线上下文复用任务线优先级夹值排序，今日/逾期上下文会按行动优先级排序，同名今日任务会清理空白后按归一化完成次数判断剩余工作，AI 建议项会压缩空白并去重，保存建议时会跳过今日同名和已有未完成同名任务，并支持发送前正文空白压缩、历史消息空白过滤、清理后展示、多关键词搜索、日期搜索、归一化角色筛选与读取资料名的气泡角色展示。
+- 对话在今日暂无任务时会把“写下下一步可执行动作”作为可保存建议返回，避免只给文字建议无法落地。
+- 对话候选记忆会在展示前过滤已有内容，保存时也会全局去重兜底，减少点击后静默消失的体验。
+- 记忆：新增、搜索、确认、忽略/恢复、删除确认、按全部/已确认/候选/忽略筛选，搜索可多关键词匹配清理后的内容/标签/来源/状态/日期/相对日期/钳制后的重要度/置信度/敏感级别，标签以 chips 展示并按统一规则清理/去重，权重指标自适应换行且与搜索共用钳制指标，记忆结果摘要与删除确认文案由服务层按统一清理口径生成，手动新增会提示重复内容，服务层会跳过空内容、过滤旧空白记忆、压缩候选/手动/确认记忆内容与来源空白并为候选/手动/确认记忆补默认来源，可批量清理已忽略记忆。
+- 复盘：区分生成/更新今日日报，在页面顶部显示今日复盘状态，避免同一天重复插入日报，支持多关键词按清理后的正文/点评/空白复盘兜底文案/日期/相对日期/XP/完成比例/完成率百分比搜索，单篇行、搜索、结果摘要、设置页概览、趋势汇总和逐日趋势共用钳制后的日报完成数、XP 与完成率展示文案，趋势进度条和洞察使用夹值后的展示完成率，删除确认文案由服务层生成，空白旧正文会用兜底文案展示，日报列表和任务线相关复盘按日报日期倒序并在同日按创建时间稳定排序，并展示按天取最新日报的自适应最近 7 天趋势指标、逐日完成率条形图、连续复盘天数与本地趋势洞察。
+- 今日复盘状态行会同时展示 XP、完成数与完成率，和搜索摘要指标保持一致。
+- 复盘单篇状态、搜索摘要、设置页日报概览与逐日趋势条会复用服务层完成率百分比展示文案，视图层不再重复拼接百分号。
+- 复盘的主线推进点评会按日报当天完成口径判断，避免提前完成但今天到期的主线任务误算为今日推进。
+- 复盘摘要会把属于今天范围但并非今天完成的任务列为“非今日完成”，让按完成日期统计后的完成比例更容易解释。
+- 复盘日报滑动删除前会要求确认，并在确认文案中标出单篇日期或多篇数量，降低误删本地日报的风险。
+- `DailyReviewService` 新增日报删除确认标题与正文，复盘页不再在视图层重复生成单篇日期或多篇数量文案。
+- 设置：通过首页右上角齿轮进入，可编辑用户和助手，数字 Stepper 会在显示与写入时夹值，退出时会归一化空白名称/助手风格/语气与越界数值、查看本地数据概览（含按服务层清理后的任务线、进行中/已关闭任务线、任务、记忆、已确认/候选/已忽略记忆、聊天、今日任务、未完成任务与逾期任务数、日报 XP 与完成率）、重置演示数据、清空聊天、清空记忆、清空日报、清理已忽略记忆、查看隐私说明。
+- 设置中的创建/清空/重置操作会给出完成回执，清空类回执使用服务层返回的实际删除数量，空聊天或空记忆时会禁用对应清空入口，减少误点和无反馈操作。
+
+## 2. 本轮新增优化
+
+- 抽取 `DailyReviewService.upsertTodayReport(...)`，仪表盘和复盘页共用同一套日报写入逻辑。
+- 给任务页增加 `TaskScope` 筛选，并把筛选规则放入 `QuestProgressService`。
+- 给记忆页增加 `MemoryStatusFilter` 分段筛选，并把筛选规则放入 `MemoryEngine`。
+- 给 `MemoryRecord` 增加 `isDismissed`，候选记忆可被忽略但不必删除。
+- `MemoryEngine` 新增忽略/恢复，并让常规记忆查询默认排除已忽略内容。
+- 记忆页新增“忽略/恢复”动作，设置页候选记忆计数排除已忽略候选。
+- `MemoryEngine` 新增批量删除已忽略记忆，设置页增加已忽略记忆计数与清理入口。
+- 给任务到期日期增加 `PersonaDate.relativeDayTitle(...)`，显示“今天/明天/已过期 N 天”等信息。
+- 将任务线状态更新抽入 `QuestProgressService.updateQuest(...)`。
+- 给 `TaskItem` 增加可选 `questId`，支持任务明确归属到某条任务线。
+- 给任务线行增加关联任务进度，并在任务行展示所属任务线。
+- 新增任务线详情页，集中展示某条任务线下的全部关联任务。
+- 任务线详情页支持一键新增关联任务，新任务固定绑定当前任务线。
+- 任务线详情页新增关联复盘区，展示最近提到当前任务线的日报线索。
+- `QuestProgressService` 新增任务线最近 7 天推进统计，任务线详情页展示完成数与 XP 条形图。
+- 任务线进度与最近推进统计的展示汇总会钳制负完成数、负 XP 和超额完成率，避免进度条超过 100% 或汇总为负。
+- `QuestDayProgress` 与 `QuestRecentProgress` 新增 XP 展示文案，任务线最近推进汇总与趋势条无障碍文案不再在视图层拼接 XP。
+- `QuestTaskProgress` 新增钳制后的关联任务摘要文案，任务线列表与详情不再在视图层拼接异常进度计数。
+- `DashboardData` 与 `TodayPlanSummary` 新增 XP 展示文案，首页状态面板和今日计划不再在视图层拼接 XP 单位。
+- `DailyReviewDayTrend`、`DailyReviewTrend`、`DailyReviewCollectionSummary` 和 `DailyReportMetrics` 新增 XP 展示文案兜底，复盘页与设置页日报 XP 指标共用非负展示口径。
+- `DailyReviewDayTrend`、`DailyReviewTrend`、`DailyReviewCollectionSummary` 和 `DailyReportMetrics` 新增完成数摘要文案，复盘页和日报搜索不再直接拼接原始完成数。
+- `DailyReviewTrend` 新增平均/最佳完成率展示值，趋势百分比、进度条和洞察统一使用 0...100% 夹值口径。
+- `QuestDayProgress` 与 `QuestRecentProgress` 新增完成数展示文案，任务线最近推进图表和无障碍标签不再直接读取原始完成数。
+- 新增任务表单支持选择已有任务线、创建同名任务线或不归属任务线。
+- 新增每日任务时可选择现有进行中主线/支线作为归属，但不会创建每日类型任务线。
+- 任务筛选升级：主线/支线范围会同时包含对应类型任务，以及绑定到对应任务线的每日任务。
+- 新增逾期任务筛选，未完成且到期早于今天的任务会进入“逾期”范围。
+- 主线/支线范围筛选在接纳绑定每日任务时会跳过空白标题任务线，避免隐藏旧任务线继续影响筛选结果。
+- 首页今日推进卡增加逾期任务数提示。
+- 任务行新增编辑入口，可修改标题、细节、类型、XP、到期日与任务线归属。
+- 新增 `EditTaskSheet`，支持将每日任务后续挂到已有主线/支线任务线。
+- 编辑任务时复用新增任务的可分配任务线规则，主线/支线/每日任务切换类型后会清掉不再合法的归属。
+- 任务线行与任务线详情页新增编辑入口，可修改标题、细节、主线/支线类型、状态和优先级。
+- 新增 `EditQuestSheet`，保存时更新任务线 `updatedAt`。
+- `QuestProgressService.searchTasks(...)` 支持按标题、细节、任务类型和所属任务线名称搜索。
+- `QuestProgressService.searchTasks(...)` 新增任务完成状态与 XP 文本匹配，可通过“已完成”“未完成”“40 XP”等关键词定位任务。
+- 任务搜索与任务行 XP 展示使用非负奖励值，避免旧负 XP 数据在列表或搜索元信息中显示/命中。
+- 任务行动排序、今日任务已完成排序、最近完成排序、今日计划摘要、任务线推进趋势与 XP 结算共用非负任务奖励口径，避免旧负 XP 数据影响列表优先级。
+- 新增/编辑任务表单复用 `TaskXPRewardBounds`，编辑旧脏任务时会把 XP 初始显示和保存值夹在 0...100。
+- 任务线列表、详情 P 值、可分配任务线排序、当前主线选择、复盘当前主线摘要与任务线表单共用 1...10 优先级口径，避免旧 priority 越界数据抢占排序。
+- `QuestProgressService.activeQuests(from:)` 统一进行中任务线排序，任务页任务线列表、对话上下文、可分配任务线与当前主线选择共用同一入口。
+- `QuestProgressService` 新增任务线展示标题清理，进行中任务线会跳过空白旧标题，Dashboard 当前主线、任务线标题查询、对话上下文与任务线 UI 共用清理后标题。
+- `QuestProgressService.closedQuests(from:)` 统一已关闭任务线列表，跳过空白旧标题并按更新时间倒序展示。
+- `QuestProgressService` 新增任务展示标题清理，今日/逾期/搜索/行动排序/最近完成/Dashboard/对话上下文都会跳过空白旧任务，并用清理后的标题展示行动建议。
+- `QuestProgressService` 新增任务/任务线详情展示清理，任务搜索、任务行、任务线行和任务线详情页会跳过空白旧详情并压缩换行空白。
+- 新增/编辑任务与任务线会在保存标题前复用 `QuestProgressService` 的清理口径，粘贴进标题的换行/连续空白不会继续原样入库。
+- `QuestProgressService` 新增任务/任务线类型标题与任务线状态标题展示入口，任务列表、任务线详情和任务行不再各自维护 raw value 到中文标题的映射。
+- `QuestProgressService` 新增任务 XP 奖励展示文案入口，任务搜索元信息和任务行展示共用非负 XP 口径。
+- `QuestProgressService.searchTasks(...)` 新增创建/到期/完成日期元信息匹配，可用“今天”“昨天”“明天”等关键词定位任务。
+- `QuestProgressService.searchTasks(...)` 支持多关键词 AND 匹配，关键词可分别命中标题、细节、类型、任务线、状态、XP 或日期，例如“主线 今天”。
+- 任务页新增搜索框，并与当前任务范围筛选组合生效。
+- `QuestProgressService.sortedIncompleteTasksForAction(...)` 新增未完成任务排序：逾期优先，其次今天、未来、无日期任务，同一天内按 XP 和创建时间排序。
+- `QuestProgressService.sortedIncompleteTasksForAction(...)` 现在会在服务层过滤已完成和空白任务，任务页与任务线详情页不再需要自行预筛未完成项。
+- 任务页和任务线详情页复用同一套行动排序，打开列表时优先看到更该处理的任务。
+- `QuestProgressService` 新增行动上下文排序：今日任务会把未完成工作按紧急度放前面、已完成工作按完成时间放后面；逾期任务同样复用行动优先级。
+- 首页今日行动建议和对话上下文复用行动排序，药老读取“今日任务/逾期任务”时会先看到更该处理的任务。
+- 任务页筛选区新增可清空的搜索框，并展示当前范围/搜索结果下的总数、未完成数和已完成数。
+- `QuestProgressService.taskSummary(...)` 统一可见任务总数、未完成数和已完成数统计，任务页筛选摘要与设置页本地数据概览共用同一口径。
+- `QuestProgressService.questSummary(...)` 统一可见任务线总数、进行中数和已关闭数统计，设置页本地数据概览不再自行过滤任务线。
+- 日报主线推进判断支持“每日任务挂到主线任务线”的场景。
+- 日报主线推进判断对齐当天完成口径，只有当天完成的主线或挂主线任务才会解除“主线推进不足”提示。
+- 日报摘要会单独列出“非今日完成”任务，避免提前完成但今天到期的任务既不在完成列表也不在未完成列表。
+- 新增 `DailyReviewTrend` 与近 7 天趋势统计，覆盖记录天数、总 XP、平均完成率、最佳日。
+- `DailyReviewTrend` 增加当前连续复盘天数与窗口内最佳连续天数。
+- `DailyReviewTrend` 在趋势统计中按自然日保留最新日报，避免历史同日多篇日报重复计入记录天数、XP 和完成率。
+- `DailyReviewService` 的完成率、日报集合摘要、趋势汇总与逐日趋势会钳制负 XP、负任务数和超额完成数，避免旧脏数据污染复盘指标。
+- 新增 `DailyReportMetrics`，复盘状态行、日报列表行、日报搜索元信息、摘要和趋势共用同一套钳制后的 XP/完成数/完成率。
+- `DailyReviewTrend` 新增平均/最佳完成率百分比展示文案，复盘趋势总览和最佳日提示不再在视图层拼接百分号。
+- `DailyReviewService` 新增日报正文/点评清理，生成日报会写入清理后的任务与任务线标题，搜索和 UI 展示共用清理文本，空白旧正文显示为“空白复盘”。
+- `DailyReportMetrics` 新增 XP 展示文案，今日复盘状态、日报列表、任务线相关复盘与日报搜索元信息共用非负 XP 口径。
+- `DailyReviewService.searchReports(...)` 会复用日报展示摘要和点评文本，用户可直接搜索“空白复盘”定位空白旧日报。
+- 复盘页新增趋势区，在日报列表前展示最近执行概况、连续记录与最长连续记录。
+- 复盘页新增日报搜索，可按总结正文和药老点评过滤历史日报。
+- 日报搜索新增日期、XP 与完成比例元信息匹配，可用日期年份、`40 XP` 或 `1/2` 快速定位日报。
+- 日报搜索新增相对日期匹配，可用“今天”“昨天”等关键词定位日报。
+- 日报搜索新增完成率百分比匹配，可用 `50%` 或“完成率 50%”快速定位日报。
+- `DailyReviewService.searchReports(...)` 支持多关键词 AND 匹配，关键词可分别命中总结、点评、日期、XP、完成比例或完成率，例如“主线 昨天”。
+- 今日复盘状态行新增完成率指标，生成或更新日报后能直接看到当日执行比例。
+- 今日复盘状态指标使用自适应网格布局，避免 XP、完成数和完成率在窄屏上互相挤压。
+- 复盘趋势区的记录、连续、XP 与完成率指标改为自适应网格布局，减少四项固定横排带来的截断风险。
+- `DailyReviewService` 新增按日期查找日报能力，返回指定日期最新一条日报，并让今日日报 upsert 复用同一查询入口。
+- 复盘页会识别今天是否已有日报，按钮在“生成今日总结”和“更新今日总结”间切换，并显示今天已复盘状态、XP、完成数量和点评。
+- `DailyReviewService` 新增日报集合摘要，汇总当前日报列表的篇数、累计 XP、完成任务数、任务总数和完成率。
+- `DailyReviewCollectionSummary` 新增完成率百分比派生值，复盘页摘要和设置页日报概览不再重复手算百分比。
+- `DailyReviewDayTrend` 的完成率百分比派生值接入复盘趋势条，逐日趋势展示不再在视图层重复手算百分比。
+- `DailyReviewTrend` 新增平均完成率/最佳完成率百分比派生值和展示文案，复盘趋势总览不再在视图层重复手算或拼接百分比。
+- `DashboardData` 新增今日完成率百分比派生值和展示文案，首页今日推进文案直接复用服务层数据。
+- `DailyReportMetrics` 与 `DailyReviewCollectionSummary` 新增完成率百分比展示文案，复盘状态、搜索摘要、搜索元信息和设置页日报概览不再各自拼接百分号。
+- `QuestProgressService` 新增任务删除确认标题与正文，任务页和任务线详情页不再在视图层重复生成删除文案或临时构造服务对象。
+- 设置页本地数据概览会复用 `DailyReviewService.summary(from:)` 展示日报数、累计 XP 和完成率，避免继续使用原始日报计数。
+- 复盘页搜索框升级为可一键清空，并在搜索区展示当前全部日报或搜索结果的摘要指标。
+- 复盘页删除日报改为先缓存待删项并弹出确认，再执行本地删除。
+- `DailyReviewTrend` 新增最近 7 天逐日快照，复盘页用紧凑条形图展示每日完成率。
+- `DailyReviewService` 新增按任务线标题匹配相关日报的查询能力。
+- `DailyReviewService.reports(relatedTo:)` 在同一日报日期内按创建时间倒序排列，避免任务线相关复盘列表依赖输入数组顺序。
+- `DailyReviewService` 新增日报日期优先的统一排序入口，复盘历史列表与任务线相关复盘共用同一套新旧排序。
+- 药老行动建议生成的今日任务默认关联当前主线。
+- 对话上下文新增逾期任务，快捷提示新增“检查风险”，药老会优先指出逾期阻塞。
+- 用户询问“我该做什么”时，如果存在逾期任务，本地药老会优先建议清理逾期并返回 `overdue_tasks` 风险标记。
+- 用户询问“我该做什么”且今日任务已全部完成时，本地药老会建议进入每日复盘，而不是重复推荐已完成动作。
+- 用户询问“我该做什么”时，同名今日任务会按完成次数抵扣，避免一个同名任务完成后把剩余同名任务误判为全部完成。
+- 对话上下文任务标题会压缩空白、换行并过滤空标题，再用于同名完成计数、回复和建议任务，避免历史脏标题污染药老建议。
+- 本地药老会清理空白用户/助手名称、空主线标题和空记忆提示，避免回复中出现空称呼、空主线或“重视空内容”的提示。
+- 对话上下文中的最近记忆和日报会复用 `MemoryEngine`/`DailyReviewService` 的清理口径，空白旧日报不会进入本地药老上下文。
+- 本地药老默认回复在没有有效记忆提示时会读取最近复盘线索，并压缩换行空白、限制长上下文长度。
+- 对话页标题和本地 AI 请求上下文会复用服务层资料名清理，旧脏用户/助手名称不会直接进入标题或上下文。
+- 对话中的最近复盘上下文会复用 `DailyReviewService.sortedReportsNewestFirst(...)`，补录旧日报不会抢占“最近复盘”。
+- 用户询问“我该做什么”且今日暂无任务时，本地药老会把默认下一步动作加入建议任务面板，方便一键创建。
+- 本地药老从用户长消息生成候选记忆时会压缩换行空白，避免建议面板出现多行脏文本。
+- 对话建议列表会先压缩换行空白、去除空内容和重复项，保存建议任务/候选记忆时复用同一套建议项清理口径。
+- 对话风险标记也会去除空内容和重复项，避免风险提示面板重复显示同一类风险。
+- `AISuggestionSanitizer` 新增风险标记中文标题映射，风险提示面板不再在视图层维护 raw flag 文案，并兼容空白、大小写异常和未知标记。
+- 对话候选记忆会在展示前过滤本地已有记忆，保存时复用同一套全局内容去重兜底。
+- 保存候选记忆时会通过 `MemoryEngine.hasMemory(...)` 做内容归一化全局去重，保存建议任务时会跳过今日同名任务和已有未完成同名任务，避免逾期建议被复制成重复任务。
+- `ChatHistoryService` 新增归一化后的气泡身份判断和发送者标题，避免脏 role 值把用户消息误排到助手侧，系统/未知角色也会显示对应标题。
+- `ChatHistoryService.senderTitle(...)` 支持传入用户/助手资料名，气泡标题会压缩资料名空白并保留默认兜底。
+- `QuestProgressService.displayName(...)` 公开为资料名展示入口，统一压缩姓名内部空白并保留空值兜底。
+- `QuestProgressService.hasTodayTask(...)` 统一今日范围同名任务判断，对话建议去重不再依赖视图内私有逻辑，并覆盖无到期日每日任务与今日完成任务。
+- `QuestProgressService.hasTodayTask(...)` 支持排除当前任务，新增/编辑任务表单也会在即将进入今日范围时拦截今日同名任务，并提示“今天已有同名任务”。
+- `QuestProgressService.selectableQuests(...)` 统一编辑任务可选任务线列表，会保留当前归属任务线、过滤空白旧任务线、去重并复用优先级排序。
+- 底部 Tab 精简为 5 个中文入口，设置迁移到首页右上角，避免 iOS 自动生成英文 `More` Tab。
+- 设置页作为 Sheet 打开时提供明确的“完成”关闭按钮，避免依赖手势退出。
+- 新增 `ChatHistoryService`，统一处理对话消息排序、关键词搜索与全部/我/药老/系统角色筛选。
+- 对话页顶部新增角色分段筛选、搜索框、匹配数量和空结果清空入口。
+- `ChatHistoryService` 搜索新增日期、时间和相对日期匹配，可用“今天”“昨天”等关键词定位历史消息。
+- `ChatHistoryService` 搜索支持多关键词 AND 匹配，关键词可分别命中正文、角色、日期或时间，例如“药老 昨天”。
+- `ChatHistoryService` 会过滤空白旧消息，并用清理后的消息内容参与搜索和气泡展示，避免空白历史记录污染对话数量与筛选结果。
+- `ChatHistoryService` 会归一化历史消息角色值后再做角色筛选和角色标题搜索，兼容旧数据里的大小写或空白异常。
+- `ChatHistoryService.cleanOutgoingContent(...)` 统一发送前消息清理，输入禁用判断、入库内容与本地 AI 收到的用户消息共用压缩空白口径。
+- 对话与任务搜索框提示文案已对齐实际搜索能力，明确提示可按角色/日期、细节/状态/XP 等元信息检索。
+- 对话页打开历史消息或切换筛选时会自动滚到当前结果底部，并复用同一个进度服务生成上下文与保存建议。
+- 对话页滚动触发只监听当前展示消息 ID 列表，去掉重复的数量监听，避免同一次变化触发两次滚动。
+- 药老建议任务会在展示前过滤掉今日同名任务和已有未完成同名任务，减少点击后静默消失的体验。
+- 新增 `TodayActionRecommendation`，首页会根据逾期任务、当前主线、今日未完成任务与完成状态生成下一步行动建议。
+- `TodayActionRecommendation` 新增按钮文案派生逻辑，首页今日行动卡不再自行判断“查看任务/新增任务/生成复盘/更新复盘”。
+- 首页新增“今日行动”卡片，可直接跳转任务、生成复盘或打开新增任务。
+- 首页“今日行动”卡片标题和按钮使用自适应布局，宽屏横排、窄屏自动上下排，降低文字挤压风险。
+- 新增 `TodayPlanSummary`，把今日任务和逾期未完成任务合并去重，统计今日可得 XP、已得 XP、剩余 XP 与主线/每日任务构成。
+- `TodayPlanSummary` 新增可测试的范围摘要文案，有逾期时会在首页“今日推进”中直接显示“逾期 N”。
+- 首页今日计划 XP 指标使用自适应网格布局，避免长数字或大字体下挤压。
+- 首页今日计划摘要在没有未完成任务时显示“今日已清空”，避免出现“未完成 0 · 主线 0 · 每日 0”的机械文案。
+- 今日任务范围会排除非当天完成的旧每日任务，避免旧完成项继续撑高今天完成率、今日计划和复盘上下文。
+- 今日完成口径抽入 `QuestProgressService.isTaskCompleted(...)`，首页完成率、今日计划 XP、复盘与对话上下文都会按完成日期判断，避免提前完成但今天到期的旧任务被算作今天完成。
+- `QuestProgressService.completeTask(...)` 对已完成但缺少 `completedAt` 的旧任务会回填完成时间并同步等级，不重复奖励 XP，避免脏数据影响今日完成口径。
+- 首页“今日推进”卡片展示今日计划摘要，并将“今日行动”提前到开场卡之后，保证首屏先看到下一步动作。
+- 首页 Dashboard 数据新增今日日报状态，快速入口与今日行动卡会在“生成总结/更新总结”“生成复盘/更新复盘”之间切换。
+- 首页 Dashboard 数据会归一化空白用户/助手名、非负 XP、由 XP 推导等级，并将精力/专注/压力夹在 0...100，避免旧资料脏值污染首页。
+- 首页 Dashboard 的药老点评会复用日报点评清理口径；如果今日日报点评为空，会回落到按完成率生成的默认点评。
+- 首页滚动内容新增底部安全留白，避免末尾卡片被半透明 Tab bar 压住。
+- 底部 Tab bar 统一为不透明系统背景，并关闭滚动边缘毛玻璃效果，避免首页内容透到导航文字下方。
+- 新增 `DailyReviewInsight`，根据复盘趋势生成“先建立记录/连续已中断/执行偏弱/节奏稳定”等本地洞察。
+- 复盘趋势区新增药老式洞察卡片，帮助用户解释完成率与连续记录，而不是只看数字。
+- `MemoryEngine` 新增标签解析，支持英文/中文逗号与分号分隔、去空格和大小写去重。
+- `MemoryEngine` 标签解析新增全角折叠、多空白压缩和音调/大小写去重，保存记忆时会写入 canonical 标签文本。
+- `MemoryEngine.saveMemory(...)` 会修剪内容/来源/标签，并夹住重要度、置信度与敏感级别范围，避免非 UI 调用写入脏数据。
+- `MemoryEngine.saveMemory(...)` 会跳过空内容，来源为空时回落到 `manual`；候选记忆来源为空时回落到 `chat`。
+- `MemoryEngine.saveMemory(...)` 会复用记忆内容清理口径压缩换行和连续空白，记忆页新增/重复检测也会按清理后的正文判断。
+- `MemoryEngine.makeCandidateMemory(...)` 会复用服务层内容清理口径压缩候选记忆空白，避免非 UI 调用写入带换行/连续空格的候选内容。
+- `MemoryEngine.saveMemory(...)` 与 `makeCandidateMemory(...)` 会压缩来源字段的换行/连续空白，来源搜索和来源匹配也复用同一口径。
+- `MemoryEngine` 新增记忆重复判断，支持内容首尾空白、多空格、换行归一化和可选来源匹配。
+- `MemoryEngine.hasMemory(...)` 的可选来源匹配会归一化空白和大小写，避免 `Chat`/`chat` 绕过重复判断。
+- `MemoryEngine` 新增记忆状态标题，并支持用“已确认/候选/已忽略”等状态词搜索记忆。
+- `MemoryEngine` 搜索新增记忆权重元信息匹配，可用“重要 9”“置信 0.85”“敏感 4”等关键词定位记忆。
+- `MemoryEngine` 搜索新增创建/更新时间与相对日期匹配，可用“今天”“昨天”等关键词定位记忆。
+- `MemoryEngine.queryMemories(...)` 支持多关键词 AND 匹配，关键词可分别命中内容、标签、来源、状态、权重或日期，例如“主线 昨天”。
+- `MemoryEngine.queryMemories(...)` 会过滤空白内容旧记录，并用清理后的内容参与搜索与列表展示，删除确认也会给空白记忆兜底文案。
+- `MemoryEngine.confirmMemory(...)` 会在确认候选记忆时压缩正文/来源并 canonical 化标签，空来源回落到 `manual`，避免确认动作把历史脏文本固化。
+- 新增 `MemoryMetrics`，记忆列表、记忆搜索元信息、排序和确认记忆时的置信度更新共用重要度/置信度/敏感级别夹值口径。
+- 记忆列表将 `tagsText` 从原始字符串升级为横向标签 chips。
+- 记忆页筛选区新增可清空的搜索框和当前结果摘要，显示总计、确认、候选与忽略数量。
+- `MemoryEngine.summary(...)` 统一记忆结果摘要统计，会跳过空白旧记忆，并让已忽略状态优先生效，避免同时确认又忽略的旧数据被双算。
+- 设置页本地数据概览会复用 `MemoryEngine.summary(...)` 统计总记忆、已确认、候选和已忽略记忆，避免多次查询口径漂移。
+- 记忆行的重要度、置信度与敏感级别指标改为自适应网格布局，降低窄屏和大字体下的挤压风险。
+- 记忆行组件改为接收服务层计算好的状态标题与标签列表，减少子视图内重复构造服务对象。
+- 记忆页滑动删除会先弹出确认，并在单条删除文案中展示截断后的记忆内容。
+- `MemoryEngine` 新增记忆删除确认标题与正文，记忆页不再在视图层重复清理和截断待删除记忆内容。
+- 手动新增记忆时会检查本地是否已有相同内容，发现重复时给出提示并禁用保存。
+- `DemoDataSeeder` 新增清空日报能力，设置页新增带确认的“清空日报”入口。
+- 默认演示日报从今天调整为昨天，首次启动仍有趋势样例，但不会抢占今天的“生成总结”入口。
+- `QuestProgressService.searchTasks(...)` 新增相对到期日期匹配，可通过“今天”“已过期”等关键词查任务。
+- `QuestProgressService.hasOpenTask(...)` 支持排除当前任务，新增/编辑任务表单会提示同名未完成任务并禁用保存，避免手动创建重复行动。
+- 同名任务判断会归一化大小写、首尾空白、换行和连续空格，避免历史脏标题或对话建议绕过重复任务拦截。
+- `QuestProgressService` 新增进行中任务线同名查询，新增主线/支线任务创建同名任务线时会优先复用已有任务线，任务线新增/编辑也会拦截同类型同名进行中任务线。
+- `QuestProgressService.assignableQuests(...)` 统一新增任务可选任务线规则，每日任务可挂主线/支线，主线/支线任务只匹配同类型任务线。
+- `QuestProgressService.recentlyCompletedTasks(...)` 统一已完成任务排序，任务页和任务线详情页都会按最近完成、同时间高 XP 优先展示。
+- 已完成任务行新增完成日期提示，使用完成时间、到期日或创建时间作为展示兜底。
+- 任务行到期信息新增日历图标，未完成且已逾期显示红色、今天到期显示橙色，方便在任务列表快速扫出风险。
+- 任务页和任务线详情页的滑动删除会先弹出确认，并复用同一套单项/多项删除文案。
+- 设置页增加进行中任务线、已关闭任务线、今日任务、未完成任务、已完成任务、逾期任务、已确认记忆、候选记忆等本地数据计数。
+- 设置页本地数据概览复用任务线、任务、记忆和聊天的服务层清理口径，避免空白旧记录让概览数量和各功能页不一致。
+- 设置页新增清理操作完成提示，并在聊天或记忆为空时禁用对应清空按钮。
+- `DemoDataSeeder` 的清空聊天/记忆/日报接口会返回实际删除数量，设置页清空回执直接使用该数量。
+- 用户与助手资料新增保存前归一化，空白名称/风格/语气会回落到默认值，数值字段会夹在合法范围内。
+- 用户与助手资料保存归一化会压缩名称、风格和语气中的换行、制表符与连续空白，避免设置页写回脏文本。
+- 设置页用户精力/专注/压力与药老严格/温度 Stepper 在读取显示和写入时都会夹值，避免旧越界资料打开设置时先显示脏数值。
+- 清理 Swift 编译警告，并补充新的服务层和工具函数测试。
+
+## 3. 主要文件
+
+- `PersonaOS.xcodeproj/project.pbxproj`
+- `README.md`
+- `PersonaOS/App/PersonaOSApp.swift`
+- `PersonaOS/App/MainTabView.swift`
+- `PersonaOS/Core/Models/PersonaModels.swift`
+- `PersonaOS/Core/Utilities/DateHelpers.swift`
+- `PersonaOS/Core/Services/AIClient.swift`
+- `PersonaOS/Core/Services/AISuggestionSanitizer.swift`
+- `PersonaOS/Core/Services/ChatHistoryService.swift`
+- `PersonaOS/Core/Services/QuestProgressService.swift`
+- `PersonaOS/Core/Services/MemoryEngine.swift`
+- `PersonaOS/Core/Services/DailyReviewService.swift`
+- `PersonaOS/Core/Services/DemoDataSeeder.swift`
+- `PersonaOS/Features/Dashboard/DashboardView.swift`
+- `PersonaOS/Features/QuestSystem/QuestListView.swift`
+- `PersonaOS/Features/CompanionChat/CompanionChatView.swift`
+- `PersonaOS/Features/Memory/MemoryView.swift`
+- `PersonaOS/Features/DailyReview/DailyReviewView.swift`
+- `PersonaOS/Features/Settings/SettingsView.swift`
+- `PersonaOS/Tests/QuestProgressServiceTests.swift`
+- `PersonaOS/Tests/DailyReviewServiceTests.swift`
+- `PersonaOS/Tests/MemoryEngineTests.swift`
+- `PersonaOS/Tests/MockAIClientTests.swift`
+- `PersonaOS/Tests/ChatHistoryServiceTests.swift`
+- `PersonaOS/Tests/AISuggestionSanitizerTests.swift`
+
+## 4. 验证命令
+
+可用模拟器为 `iPhone 17`：
+
+```sh
+xcodebuild \
+  -scheme PersonaOS \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  -derivedDataPath ./DerivedData \
+  build
+```
+
+```sh
+xcodebuild \
+  -scheme PersonaOS \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  -derivedDataPath ./DerivedData \
+  build-for-testing
+```
+
+## 5. 验证结果
+
+成功日志：
+
+- `BuildLogs/build-round10.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round11.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round12.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round13.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round14.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round15.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round16.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round17.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round18.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round19.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round20.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round21.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round22.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round23.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round24.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round25.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round26.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round27.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round28.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round29.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round30.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round31.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round32.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round33.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round34.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round35.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round36.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round37.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round38.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round39.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round40.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round41.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round42.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round43.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round44.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round45.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round46.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round47.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round48.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round49.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round50.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round51.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round52.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round53.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round54.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round55.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round56.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round57.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round58.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round59.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round62.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round63.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round64.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round65.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round66.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round67.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round69.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round71.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round73.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round75.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round77.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round79.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round81.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round83.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round84.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round85.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round86.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round87.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round88.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round90.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round91.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round92.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round93.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round94.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round95.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round97.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round98.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round99.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round100.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round101.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round102.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round103.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round104.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round105.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round106.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round107.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round108.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round109.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round110.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round111.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round113.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round114.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round115.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round116.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round117.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round118.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round119.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round120.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round122.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round123.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round124.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round125.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round126.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round127.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round128.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round129.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round130.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round131.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round132.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round133.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round134.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round135.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round136.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round137.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round138.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round139.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round140.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round141.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round142.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round143.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round144.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round145.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round146.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round147.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round148.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round149.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round150.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round151.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round152.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round153.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round154.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round155.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round156.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round157.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round158.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round159.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round160.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round161.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round162.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round163.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round164.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round165.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round166.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round167.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round168.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round169.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round170.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round171.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round172.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round173.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round175.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round176.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round177.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round178.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round179.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round180.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round181.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round182.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round183.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round184.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round185.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round186.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round187.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round188.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round189.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round190.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round191.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round192.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round193.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round194.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round195.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round196.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-round197.log`: `BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round8.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round9.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round10.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round11.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round12.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round13.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round14.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round15.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round16.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round17.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round18.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round19.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round20.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round22.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round23.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round24.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round25.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round26.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round27.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round28.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round29.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round30.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round31.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round33.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round34.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round35.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round36.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round37.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round38.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round39.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round40.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round41.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round42.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round43.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round45.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round46.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round47.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round48.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round49.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round50.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round51.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round52.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round61.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round68.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round70.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round72.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round74.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round76.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round78.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round80.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round82.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round89.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round95.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round97.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round99.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round100.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round101.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round102.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round103.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round104.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round105.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round106.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round107.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round108.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round109.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round110.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round111.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round113.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round114.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round115.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round116.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round117.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round118.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round119.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round120.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round122.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round123.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round124.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round125.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round126.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round127.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round128.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round129.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round130.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round131.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round132.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round133.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round134.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round135.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round136.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round137.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round138.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round139.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round140.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round141.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round142.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round143.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round144.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round145.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round146.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round147.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round148.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round149.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round150.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round151.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round152.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round153.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round154.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round155.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round156.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round157.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round158.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round159.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round160.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round161.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round162.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round163.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round164.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round165.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round166.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round167.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round168.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round169.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round170.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round171.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round172.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round173.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round175.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round176.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round177.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round178.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round179.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round180.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round181.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round182.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round183.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round184.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round185.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round186.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round187.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round188.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round189.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round190.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round191.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round192.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round193.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round194.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round195.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round196.log`: `TEST BUILD SUCCEEDED`
+- `BuildLogs/build-for-testing-round197.log`: `TEST BUILD SUCCEEDED`
+
+最新完整测试运行成功日志：
+
+- `BuildLogs/test-round5.log`: `TEST SUCCEEDED`
+- 当时 17 个测试通过。
+
+本轮新增测试已通过 `build-for-testing` 编译验证；当前测试总数为 149 个，覆盖：
+
+- `QuestProgressServiceTests`: XP、等级、已完成任务缺失完成时间回填、撤回完成、今日完成率、按完成日期统计今日完成指标、每日任务今日范围排除非当天完成旧任务、空白任务过滤与展示标题清理、任务摘要统计、任务删除确认文案、任务线摘要统计、任务/任务线类型和任务线状态标题归一化、手动任务/任务线标题清理、资料名显示清理与兜底、任务/任务线详情展示清理与搜索、任务范围筛选、逾期任务筛选、未完成同名任务判断、编辑时排除当前任务的同名判断、同名任务标题空白/大小写归一化、今日范围同名任务判断、今日范围同名判断排除当前任务、今日范围同名标题归一化、可分配任务线规则、编辑任务可选任务线保留当前归属/空白过滤/去重、进行中任务线排序、已关闭任务线空白过滤与更新时间排序、任务线优先级排序夹值、空白任务线过滤与展示标题清理、进行中任务线同名归一化查询与排除当前任务线、未完成任务行动排序、未完成任务行动排序排除已完成/空白记录、任务排序非负 XP 口径、今日行动上下文排序、最近完成任务排序、任务搜索、多关键词任务搜索、相对到期日期搜索、创建/到期/完成相对日期搜索、完成状态与 XP 搜索、任务 XP 展示文案/搜索非负兜底、绑定任务线后的主线/支线筛选、绑定空白标题任务线的每日任务排除、任务线状态更新、任务线关联进度、任务线进度异常指标钳制与 XP/摘要文案、任务线最近推进趋势与完成数/XP 文案、任务归属标题查询、Dashboard 数据与当前 XP/距下级 XP/今日完成率/今日计划 XP 展示文案、Dashboard 资料显示归一化、Dashboard 今日日报状态、Dashboard 日报点评清理与空白兜底、今日计划摘要、范围摘要与清空态文案、首页今日行动建议与按钮文案。
+- `PersonaDateTests`: 相对日期提示。
+- `DailyReviewServiceTests`: 日报生成、主线压力点评、主线推进按当天完成判断、提前完成任务在日报中列为非今日完成、挂主线的每日任务、空任务、同日 upsert 创建/更新、按日期查找最新日报、日报日期优先排序、日报集合摘要与完成数/XP/完成率百分比文案、异常日报指标钳制、日报删除确认文案、日报 Metrics 与搜索元信息钳制、单篇日报完成数/XP/完成率百分比文案、日报正文/点评清理与空白正文兜底、空白复盘兜底搜索、日报上下文文本清理、最近 7 天趋势统计与完成数/总 XP/平均/最佳完成率百分比文案、趋势展示完成率夹值、同日重复日报取最新、逐日趋势快照与完成数/XP/完成率百分比文案、连续复盘天数、趋势洞察、日报搜索、日期/相对日期/XP/完成比例/完成率百分比搜索、多关键词跨总结/日期搜索、任务线相关日报查询与同日创建时间稳定排序。
+- `MemoryEngineTests`: 候选记忆、候选内容/来源清理、候选默认来源、保存记忆内容/来源清理、确认时正文/来源/标签归一化、保存记忆元数据归一化与权重边界、空内容跳过与空来源默认值、空白记忆过滤与展示内容清理、标签解析、标签全角/空白/大小写去重、保存时 canonical 标签文本、多空格/换行归一化重复判断、来源归一化匹配、确认、忽略/恢复、删除、记忆删除确认文案、批量清理已忽略记忆、排序、状态标题、状态摘要统计、状态筛选与搜索、按状态词搜索、按重要度/置信度/敏感级别搜索、记忆权重指标夹值、按创建/更新时间相对日期搜索、多关键词跨内容/日期搜索。
+- `DemoDataSeederTests`: 用户/助手可编辑字段归一化、用户/助手资料空白兜底、演示数据去重、重置默认数据、默认任务线归属、默认日报不占用今天、清空聊天/记忆/日报返回删除数量且保留其他数据。
+- `MockAIClientTests`: 主线建议、下一步建议优先逾期任务、同名今日任务按完成次数判断剩余工作、同名任务空白/换行归一化、空任务标题忽略、空白用户/助手/主线/记忆上下文兜底、最近日报上下文清理与默认回复提示、候选记忆用户文本清理、今日任务完成后转入复盘建议、今日无任务时返回可保存 fallback 建议、新项目风险、逾期风险检查、通用回复、每日总结建议。
+- `ChatHistoryServiceTests`: 对话消息排序、空白消息过滤与展示内容清理、发送前正文空白压缩、按角色筛选、脏角色值归一化、气泡发送者标题与用户身份归一化、气泡标题读取清理后的资料名并兜底、按正文与角色标题搜索、按相对日期搜索、多关键词跨角色/日期搜索。
+- `AISuggestionSanitizerTests`: AI 建议项空白压缩、空内容跳过、归一化去重、大小写/音调/空白归一化键、风险标记标题归一化与兜底。
+
+模拟器 smoke check：
+
+- `xcrun simctl bootstatus CB8E8CCC-FB14-4CFE-BADA-05C7D61D6926 -b`: `Finished`
+- `xcrun simctl install CB8E8CCC-FB14-4CFE-BADA-05C7D61D6926 ./DerivedData/Build/Products/Debug-iphonesimulator/PersonaOS.app`: 成功
+- `xcrun simctl launch CB8E8CCC-FB14-4CFE-BADA-05C7D61D6926 com.local.PersonaOS`: 成功，返回进程号 `44210`
+- 导航修正后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `45354`
+- `BuildLogs/Screenshots/launch-smoke-round27-after-wait.png`: 已确认首页正常渲染，底部 5 个 Tab 均为中文入口，设置齿轮显示在首页右上角。
+- 对话搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `47345`
+- `BuildLogs/Screenshots/launch-smoke-round29.png`: 已确认首页正常渲染，底部仍保持 5 个中文入口。
+- 今日行动卡片优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `48905`
+- `BuildLogs/Screenshots/launch-smoke-round31.png`: 已确认首页新增“今日行动”卡片正常渲染，按钮未被 Tab bar 遮挡。
+- 今日计划摘要优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `54337`
+- `BuildLogs/Screenshots/launch-smoke-round37.png`: 已确认首页展示今日计划摘要，但摘要过高会把行动卡压到首屏底部。
+- 首页行动卡提前后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `55184`
+- `BuildLogs/Screenshots/launch-smoke-round39.png`: 已确认“今日行动”卡片完整出现在首屏，按钮和说明未被 Tab bar 遮挡。
+- 底部 Tab bar 背景修正后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `69875`
+- `BuildLogs/Screenshots/launch-smoke-round57.png`: 已确认首页正常渲染，底部 5 个中文入口保持可见，并使用不透明背景承载导航项。
+- 对话页低风险优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `70926`
+- `BuildLogs/Screenshots/launch-smoke-round58.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 设置页反馈优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `71471`
+- `BuildLogs/Screenshots/launch-smoke-round59.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 任务完成列表排序优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `72718`
+- `BuildLogs/Screenshots/launch-smoke-round62.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 记忆行组件简化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `73318`
+- `BuildLogs/Screenshots/launch-smoke-round63.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 复盘日报删除确认优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `73864`
+- `BuildLogs/Screenshots/launch-smoke-round64.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 任务删除确认优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `74293`
+- `BuildLogs/Screenshots/launch-smoke-round65.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 记忆删除确认优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `74847`
+- `BuildLogs/Screenshots/launch-smoke-round66.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 对话滚动监听去重后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `75372`
+- `BuildLogs/Screenshots/launch-smoke-round67.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 新增每日任务归属选择优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `75921`
+- `BuildLogs/Screenshots/launch-smoke-round69.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 新增任务可选任务线规则服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `76645`
+- `BuildLogs/Screenshots/launch-smoke-round71.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 今日同名任务判断服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `77461`
+- `BuildLogs/Screenshots/launch-smoke-round73.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 今日范围同名任务判断扩展后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `79206`
+- `BuildLogs/Screenshots/launch-smoke-round75.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 任务搜索状态与 XP 匹配优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `80002`
+- `BuildLogs/Screenshots/launch-smoke-round77.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 对话历史日期搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `81027`
+- `BuildLogs/Screenshots/launch-smoke-round79.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 记忆权重搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `81852`
+- `BuildLogs/Screenshots/launch-smoke-round81.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 日报完成率搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `82880`
+- `BuildLogs/Screenshots/launch-smoke-round83.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 搜索提示文案对齐后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `83515`
+- `BuildLogs/Screenshots/launch-smoke-round84.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 已完成任务日期反馈优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `84049`
+- `BuildLogs/Screenshots/launch-smoke-round85.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 今日复盘完成率状态优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `84372`
+- `BuildLogs/Screenshots/launch-smoke-round86.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 今日复盘状态指标布局优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `84713`
+- `BuildLogs/Screenshots/launch-smoke-round87.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 对话候选记忆展示前去重优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `85141`
+- `BuildLogs/Screenshots/launch-smoke-round88.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 记忆来源归一化去重优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `85786`
+- `BuildLogs/Screenshots/launch-smoke-round90.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 对话风险标记去重优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `86330`
+- `BuildLogs/Screenshots/launch-smoke-round91.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 首页今日行动卡自适应布局优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `86893`
+- `BuildLogs/Screenshots/launch-smoke-round92.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 首页今日计划摘要自适应布局优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `87214`
+- `BuildLogs/Screenshots/launch-smoke-round93.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 设置页逾期任务计数优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `87761`
+- `BuildLogs/Screenshots/launch-smoke-round94.png`: 已确认应用可正常启动，首页和底部导航保持稳定。
+- 首页今日计划逾期摘要与设置页任务计数优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `89828`
+- `BuildLogs/Screenshots/launch-smoke-round95.png`: 已确认首页今日行动卡、状态面板和底部导航正常渲染，未出现明显遮挡或重叠。
+- 手动任务表单今日同名防重复优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `91397`
+- `BuildLogs/Screenshots/launch-smoke-round97-after-wait.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。`launch-smoke-round97.png` 初次 2 秒截图仍为空白，延迟 5 秒后恢复正常。
+- 记忆与复盘指标自适应布局优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `92417`
+- `BuildLogs/Screenshots/launch-smoke-round98.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话今日闭环后复盘建议优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `93655`
+- `BuildLogs/Screenshots/launch-smoke-round99.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘趋势同日最新日报去重优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `95054`
+- `BuildLogs/Screenshots/launch-smoke-round100.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 日报相对日期搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `96109`
+- `BuildLogs/Screenshots/launch-smoke-round101.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 记忆相对日期搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `97128`
+- `BuildLogs/Screenshots/launch-smoke-round102.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务创建/到期/完成日期搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `98629`
+- `BuildLogs/Screenshots/launch-smoke-round103.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘主线推进当天完成口径修正后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `99624`
+- `BuildLogs/Screenshots/launch-smoke-round104.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话今日无任务 fallback 建议优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `686`
+- `BuildLogs/Screenshots/launch-smoke-round105.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 编辑任务可选任务线规则一致化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `3087`
+- `BuildLogs/Screenshots/launch-smoke-round106.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 首页今日计划清空态文案优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `5557`
+- `BuildLogs/Screenshots/launch-smoke-round107.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 记忆保存元数据归一化优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `6585`
+- `BuildLogs/Screenshots/launch-smoke-round108.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 每日任务今日范围旧完成项排除优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `7292`
+- `BuildLogs/Screenshots/launch-smoke-round109.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 同名任务标题归一化去重优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `9698`
+- `BuildLogs/Screenshots/launch-smoke-round110.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务线同名复用与拦截优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `11027`
+- `BuildLogs/Screenshots/launch-smoke-round111.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 记忆空内容与默认来源兜底优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `12210`
+- `BuildLogs/Screenshots/launch-smoke-round113.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 今日完成日期口径统一优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `13501`
+- `BuildLogs/Screenshots/launch-smoke-round114.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 设置资料保存归一化优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `15220`
+- `BuildLogs/Screenshots/launch-smoke-round115.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话同名任务完成计数优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `16510`
+- `BuildLogs/Screenshots/launch-smoke-round116.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话任务标题清理与归一化计数优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `18247`
+- `BuildLogs/Screenshots/launch-smoke-round117.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 记忆标签 canonical 化优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `20566`
+- `BuildLogs/Screenshots/launch-smoke-round118.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 已完成任务缺失完成时间回填优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `21654`
+- `BuildLogs/Screenshots/launch-smoke-round119.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 日报非今日完成摘要优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `22501`
+- `BuildLogs/Screenshots/launch-smoke-round120.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 设置清空操作删除数量回执优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `23900`
+- `BuildLogs/Screenshots/launch-smoke-round122.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话历史多关键词搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `24878`
+- `BuildLogs/Screenshots/launch-smoke-round123.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务多关键词搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `25956`
+- `BuildLogs/Screenshots/launch-smoke-round124.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘多关键词搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `27305`
+- `BuildLogs/Screenshots/launch-smoke-round125.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 记忆多关键词搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `28185`
+- `BuildLogs/Screenshots/launch-smoke-round126.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 日报异常指标钳制优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `29757`
+- `BuildLogs/Screenshots/launch-smoke-round127.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- Dashboard 资料展示归一化优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `30958`
+- `BuildLogs/Screenshots/launch-smoke-round128.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 日报 Metrics 统一钳制优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `32650`
+- `BuildLogs/Screenshots/launch-smoke-round129.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务线进度异常指标钳制优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `33460`
+- `BuildLogs/Screenshots/launch-smoke-round130.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 本地 AI 上下文空白值兜底优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `34383`
+- `BuildLogs/Screenshots/launch-smoke-round131.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务 XP 非负展示与搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `35422`
+- `BuildLogs/Screenshots/launch-smoke-round132.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务 XP 非负排序口径优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `37512`
+- `BuildLogs/Screenshots/launch-smoke-round133.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务表单 XP 夹值优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `38598`
+- `BuildLogs/Screenshots/launch-smoke-round134.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务线优先级夹值优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `40606`
+- `BuildLogs/Screenshots/launch-smoke-round135.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 进行中任务线排序服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `41808`
+- `BuildLogs/Screenshots/launch-smoke-round136.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 记忆权重指标夹值优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `43183`
+- `BuildLogs/Screenshots/launch-smoke-round137.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 设置页数字 Stepper 夹值优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `44312`
+- `BuildLogs/Screenshots/launch-smoke-round138.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 空白记忆过滤与展示内容清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `45273`
+- `BuildLogs/Screenshots/launch-smoke-round139.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话空白消息过滤与展示内容清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `47006`
+- `BuildLogs/Screenshots/launch-smoke-round140.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务线空白标题过滤与展示标题清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `48553`
+- `BuildLogs/Screenshots/launch-smoke-round141.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务空白标题过滤与展示标题清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `49689`
+- `BuildLogs/Screenshots/launch-smoke-round142.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 日报正文/点评清理与空白正文兜底优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `50844`
+- `BuildLogs/Screenshots/launch-smoke-round143.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 设置页数据概览清理口径对齐后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `51984`
+- `BuildLogs/Screenshots/launch-smoke-round144.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话最近记忆/日报上下文清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `53371`
+- `BuildLogs/Screenshots/launch-smoke-round145.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 首页日报点评清理与空白兜底优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `55340`
+- `BuildLogs/Screenshots/launch-smoke-round146.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 已关闭任务线清理口径服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `56945`
+- `BuildLogs/Screenshots/launch-smoke-round147.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务/任务线详情清理展示优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `58571`
+- `BuildLogs/Screenshots/launch-smoke-round148.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 主线/支线范围排除空白任务线归属优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `59646`
+- `BuildLogs/Screenshots/launch-smoke-round149.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 本地药老默认回复复用最近复盘上下文优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `61064`
+- `BuildLogs/Screenshots/launch-smoke-round150.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 本地药老候选记忆用户文本清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `61785`
+- `BuildLogs/Screenshots/launch-smoke-round151.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 候选记忆内容清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `62757`
+- `BuildLogs/Screenshots/launch-smoke-round152.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- AI 建议项统一清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `64935`
+- `BuildLogs/Screenshots/launch-smoke-round153.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务/任务线标题保存清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `66741`
+- `BuildLogs/Screenshots/launch-smoke-round154.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 手动记忆内容保存清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `67711`
+- `BuildLogs/Screenshots/launch-smoke-round155.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 记忆来源字段清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `68812`
+- `BuildLogs/Screenshots/launch-smoke-round156.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话历史角色归一化优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `69716`
+- `BuildLogs/Screenshots/launch-smoke-round157.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 空白复盘兜底文案搜索优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `70552`
+- `BuildLogs/Screenshots/launch-smoke-round158.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务线相关复盘同日稳定排序优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `72871`
+- `BuildLogs/Screenshots/launch-smoke-round159.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘列表日期优先排序服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `75138`
+- `BuildLogs/Screenshots/launch-smoke-round160.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话气泡角色归一化优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `76793`
+- `BuildLogs/Screenshots/launch-smoke-round161.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话资料名清理与最近复盘口径对齐后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `78644`
+- `BuildLogs/Screenshots/launch-smoke-round162.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 资料字段保存空白压缩优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `79810`
+- `BuildLogs/Screenshots/launch-smoke-round163.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务编辑可选任务线服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `82104`
+- `BuildLogs/Screenshots/launch-smoke-round164.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话发送前正文清理优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `84111`
+- `BuildLogs/Screenshots/launch-smoke-round165.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话气泡标题读取资料名优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `84742`
+- `BuildLogs/Screenshots/launch-smoke-round166.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 记忆结果摘要服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `85658`
+- `BuildLogs/Screenshots/launch-smoke-round167.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 未完成任务行动排序服务层过滤修正后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `86866`
+- `BuildLogs/Screenshots/launch-smoke-round168.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务摘要统计服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `87589`
+- `BuildLogs/Screenshots/launch-smoke-round169.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 记忆确认归一化优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `89061`
+- `BuildLogs/Screenshots/launch-smoke-round170.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 设置任务线摘要服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `90704`
+- `BuildLogs/Screenshots/launch-smoke-round171.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 设置记忆摘要服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `91515`
+- `BuildLogs/Screenshots/launch-smoke-round172.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 设置日报摘要服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `92394`
+- `BuildLogs/Screenshots/launch-smoke-round173.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 日报集合摘要完成率百分比优化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `93630`
+- `BuildLogs/Screenshots/launch-smoke-round175.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘趋势条完成率百分比服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `94647`
+- `BuildLogs/Screenshots/launch-smoke-round176.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘趋势总览百分比服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `95556`
+- `BuildLogs/Screenshots/launch-smoke-round177.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 首页今日完成率百分比服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `96400`
+- `BuildLogs/Screenshots/launch-smoke-round178.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务删除确认文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `98378`
+- `BuildLogs/Screenshots/launch-smoke-round179.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 记忆删除确认文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `604`
+- `BuildLogs/Screenshots/launch-smoke-round180.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘日报删除确认文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `2356`
+- `BuildLogs/Screenshots/launch-smoke-round181.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务/任务线类型与状态标题服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `4300`
+- `BuildLogs/Screenshots/launch-smoke-round182.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 首页今日行动按钮文案模型化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `5822`
+- `BuildLogs/Screenshots/launch-smoke-round183.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 对话风险标记标题 sanitizer 化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `7366`
+- `BuildLogs/Screenshots/launch-smoke-round184.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘趋势条百分比文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `8818`
+- `BuildLogs/Screenshots/launch-smoke-round185.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 单篇/集合日报完成率百分比文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `10400`
+- `BuildLogs/Screenshots/launch-smoke-round186.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘趋势平均/最佳完成率百分比文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `11740`
+- `BuildLogs/Screenshots/launch-smoke-round187.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 首页今日完成率百分比文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `12729`
+- `BuildLogs/Screenshots/launch-smoke-round188.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务 XP 奖励展示文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `14002`
+- `BuildLogs/Screenshots/launch-smoke-round189.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 单篇日报 XP 展示文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `14929`
+- `BuildLogs/Screenshots/launch-smoke-round190.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务线最近推进 XP 展示文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `15970`
+- `BuildLogs/Screenshots/launch-smoke-round191.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务线关联任务摘要文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `17052`
+- `BuildLogs/Screenshots/launch-smoke-round192.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 首页 XP 展示文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `18875`
+- `BuildLogs/Screenshots/launch-smoke-round193.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘 XP 展示文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `20711`
+- `BuildLogs/Screenshots/launch-smoke-round194.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘完成数展示文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `21649`
+- `BuildLogs/Screenshots/launch-smoke-round195.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 复盘趋势展示完成率夹值后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `22607`
+- `BuildLogs/Screenshots/launch-smoke-round196.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+- 任务线最近推进完成数文案服务化后重新安装并启动：`xcrun simctl launch --terminate-running-process ... com.local.PersonaOS` 成功，返回进程号 `23573`
+- `BuildLogs/Screenshots/launch-smoke-round197.png`: 已确认首页正常渲染，底部 5 个中文入口保持稳定。
+
+## 6. 测试运行异常说明
+
+`test-round6` 和 `test-round7` 在新增部分测试后尝试完整运行 XCTest，但两次都卡在 Xcode 的模拟器诊断阶段，随后被中断：
+
+- `BuildLogs/test-round6.log`
+- `BuildLogs/test-round7.log`
+- `BuildLogs/test-service-round8.log`
+
+观察到的现象是 `simctl diagnose` 和大量 iOS 26.5 模拟器系统进程长时间运行，日志停在 app/test bundle 校验后，没有出现业务断言失败。为避免把模拟器运行环境问题误判为代码问题，本轮使用 `build-for-testing` 验证测试包可编译。
+
+`test-service-round8` 只尝试运行 `QuestProgressServiceTests` 与 `DailyReviewServiceTests`，并使用 180 秒超时保护；日志仍只输出 invocation，没有 `TEST SUCCEEDED` 或业务断言失败信息，且结束后没有遗留 `xcodebuild`/`simctl` 进程。
+
+`BuildLogs/build-for-testing-round21.log` 是一次修正前的编译失败，原因是任务线详情页新增关联复盘区时把 `reports` 查询和 `DailyReviewService` 放在了外层列表作用域。已在下一轮移入 `QuestDetailView` 并通过 `BuildLogs/build-for-testing-round22.log` 验证。
+
+`BuildLogs/build-for-testing-round32.log` 是一次修正前的编译失败，原因是记忆标签 chips 使用了不存在的 SwiftUI `ShapeStyle.accent`。已改为 `Color.accentColor`，并通过 `BuildLogs/build-for-testing-round33.log` 和 `BuildLogs/build-round33.log` 验证。
+
+`BuildLogs/build-for-testing-round44.log` 是一次修正前的编译失败，原因是给日报搜索闭包加入 `metadata` 局部变量后没有显式 `return` 布尔表达式。已补充 `return`，并通过 `BuildLogs/build-for-testing-round45.log` 和 `BuildLogs/build-round44.log` 验证。
+
+`BuildLogs/build-for-testing-round60.log` 是一次修正前的编译失败，原因是新增最近完成任务排序测试时 `TaskItem` 初始化参数顺序不符合定义。已调整 `createdAt` 与 `completedAt` 参数顺序，并通过 `BuildLogs/build-for-testing-round61.log` 和 `BuildLogs/build-round62.log` 验证。
+
+`BuildLogs/build-for-testing-round96.log` 是一次修正前的编译失败，原因是 `QuestProgressService.hasTodayTask(...)` 的 `contains` 闭包加入排除当前任务分支后，最后的布尔表达式缺少显式 `return`。已补充 `return`，并通过 `BuildLogs/build-for-testing-round97.log` 和 `BuildLogs/build-round97.log` 验证。
+
+`BuildLogs/build-for-testing-round112.log` 是一次修正前的编译失败，原因是 `MemoryEngine.makeCandidateMemory(...)` 新增 `trimmedSource` 局部变量后仍依赖单表达式隐式返回。已改为显式 `return MemoryRecord(...)`，并通过 `BuildLogs/build-for-testing-round113.log` 和 `BuildLogs/build-round113.log` 验证。
+
+`BuildLogs/build-for-testing-round121.log` 是一次修正前的编译失败，原因是 `SettingsView.run(...)` 中新增局部变量 `result` 后遮蔽了同名 `result(for:)` 方法。已将局部变量改名为 `actionFeedback`，并通过 `BuildLogs/build-for-testing-round122.log` 和 `BuildLogs/build-round122.log` 验证。
+
+`BuildLogs/build-for-testing-round174.log` 是一次修正前的编译失败，原因是复盘页切换到 `DailyReviewCollectionSummary.completionPercent` 后，该派生值尚未真正加入集合摘要结构体。已补充属性，并通过 `BuildLogs/build-for-testing-round175.log` 和 `BuildLogs/build-round175.log` 验证。
+
+## 7. 运行方式
+
+1. 打开 `PersonaOS.xcodeproj`。
+2. 选择 scheme：`PersonaOS`。
+3. 选择可用 iPhone 模拟器，例如 `iPhone 17`。
+4. 点击 Run。
+5. 首次启动会插入演示数据。
+6. App 不需要网络、API Key 或额外系统权限。
+
+## 8. 下一阶段建议
+
+- 增加 UI 自动化测试，覆盖启动、任务完成、聊天发送、生成日报。
+- 若未来接入真实 AI API，先加入权限说明、配置入口、失败降级和本地数据边界。
