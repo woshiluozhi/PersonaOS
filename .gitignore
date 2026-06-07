@@ -1,5 +1,6 @@
 .DS_Store
 DerivedData/
+DerivedDataDevice/
 BuildLogs/
 TestResults/
 *.xcresult
