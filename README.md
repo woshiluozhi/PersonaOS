@@ -40,6 +40,10 @@ xcodebuild \
 
 Recent successful logs are recorded in `CODEX_REPORT.md`. Full XCTest execution may stall in this local iOS 26.5 simulator environment during simulator diagnostics; `build-for-testing` is currently the reliable verification path for test bundle compilation.
 
+## App Store Readiness
+
+See `APP_STORE_READINESS.md` for the current submission checklist, completed engineering items, and remaining account/legal/App Store Connect tasks.
+
 ## Notes
 
 - All app data is local SwiftData.
