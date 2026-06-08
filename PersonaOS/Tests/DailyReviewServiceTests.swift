@@ -4,6 +4,8 @@ import XCTest
 
 @MainActor
 final class DailyReviewServiceTests: XCTestCase {
+    private var retainedContainers: [ModelContainer] = []
+
     func testGenerateReportFromTasks() {
         let service = DailyReviewService()
         let today = Date()
@@ -104,6 +106,7 @@ final class DailyReviewServiceTests: XCTestCase {
         let yesterday = Date(timeInterval: -86_400, since: today)
         let completedYesterday = TaskItem(
             title: "提前完成",
+            taskType: QuestType.side.rawValue,
             isCompleted: true,
             xpReward: 20,
             dueDate: today,
@@ -782,6 +785,7 @@ final class DailyReviewServiceTests: XCTestCase {
         ])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: schema, configurations: [configuration])
+        retainedContainers.append(container)
         return container.mainContext
     }
 

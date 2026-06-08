@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -18,12 +19,16 @@ struct SettingsView: View {
     @State private var apiKeyInput = ""
     @State private var hasStoredAPIKey = false
     @State private var isTestingAIConnection = false
+    @State private var isPresentingDataExporter = false
+    @State private var exportDocument = PersonaOSExportDocument(data: Data())
+    @State private var exportFilename = "personaos-export.json"
 
     private let memoryEngine = MemoryEngine()
     private let progressService = QuestProgressService()
     private let dailyReviewService = DailyReviewService()
     private let chatHistoryService = ChatHistoryService()
     private let apiKeyStore = KeychainAPIKeyStore()
+    private let exportService = LocalDataExportService()
 
     private var questSummary: QuestCollectionSummary {
         progressService.questSummary(for: quests)
@@ -99,6 +104,16 @@ struct SettingsView: View {
 
     private var reportCompletionRateText: String {
         reportSummary.completionPercentText
+    }
+
+    private var hasExportableLocalData: Bool {
+        !users.isEmpty ||
+            !companions.isEmpty ||
+            !quests.isEmpty ||
+            !tasks.isEmpty ||
+            !memories.isEmpty ||
+            !reports.isEmpty ||
+            !messages.isEmpty
     }
 
     var body: some View {
@@ -189,6 +204,17 @@ struct SettingsView: View {
                 }
 
                 Section("数据") {
+                    Button {
+                        prepareDataExport()
+                    } label: {
+                        Label("导出本地数据", systemImage: "square.and.arrow.up")
+                    }
+                    .disabled(!hasExportableLocalData)
+
+                    Text("导出内容只包含本机 SwiftData 数据，不包含 Keychain 中的 OpenAI API Key。")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+
                     Button("重置演示数据", role: .destructive) {
                         pendingDestructiveAction = .resetDemoData
                     }
@@ -217,10 +243,10 @@ struct SettingsView: View {
                 Section("隐私说明") {
                     Text("""
                     - 默认不读取其他 App。
-                    - 默认不录音、不定位、不接入健康或日历。
+                    - 默认不录音、不定位、不接入健康或日历、不后台采集。
                     - 未配置 OpenAI API Key 时，对话只使用本地模式。
                     - 配置 Key 后，对话会把必要上下文发送到 OpenAI：用户/药老设定、当前主线、今日任务、逾期任务、最近确认记忆和近几篇复盘摘要。
-                    - API Key 只保存在本机 Keychain，不写入 SwiftData。
+                    - API Key 只保存在本机 Keychain，不写入 SwiftData 或日志。
                     - AI 只能提出建议，记忆和任务仍需你点击确认后才会写入本地。
                     """)
                     .font(.footnote)
@@ -276,6 +302,14 @@ struct SettingsView: View {
                     message: Text(result.message),
                     dismissButton: .default(Text("好"))
                 )
+            }
+            .fileExporter(
+                isPresented: $isPresentingDataExporter,
+                document: exportDocument,
+                contentType: .json,
+                defaultFilename: exportFilename
+            ) { result in
+                handleDataExportCompletion(result)
             }
             .onDisappear {
                 normalizeEditableProfiles()
@@ -503,6 +537,46 @@ struct SettingsView: View {
         )
     }
 
+    private func prepareDataExport() {
+        let exportedAt = Date()
+
+        do {
+            let data = try exportService.makeExportData(
+                users: users,
+                companions: companions,
+                quests: quests,
+                tasks: tasks,
+                memories: memories,
+                reports: reports,
+                messages: messages,
+                exportedAt: exportedAt
+            )
+            exportDocument = PersonaOSExportDocument(data: data)
+            exportFilename = exportService.suggestedFilename(exportedAt: exportedAt)
+            isPresentingDataExporter = true
+        } catch {
+            actionResult = SettingsActionResult(
+                title: "无法导出",
+                message: "本地数据导出失败：\(error.localizedDescription)"
+            )
+        }
+    }
+
+    private func handleDataExportCompletion(_ result: Result<URL, Error>) {
+        switch result {
+        case .success:
+            actionResult = SettingsActionResult(
+                title: "已导出",
+                message: "本地数据 JSON 已交给系统文件导出器处理。"
+            )
+        case .failure(let error):
+            actionResult = SettingsActionResult(
+                title: "导出失败",
+                message: error.localizedDescription
+            )
+        }
+    }
+
     private func createDefaultUser() {
         modelContext.insert(UserProfile())
         try? modelContext.save()
@@ -549,6 +623,26 @@ struct SettingsView: View {
                 message: "已删除 \(deletedCount ?? dismissedMemoryCount) 条已忽略记忆。"
             )
         }
+    }
+}
+
+private struct PersonaOSExportDocument: FileDocument {
+    static var readableContentTypes: [UTType] {
+        [.json]
+    }
+
+    var data: Data
+
+    init(data: Data) {
+        self.data = data
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        data = configuration.file.regularFileContents ?? Data()
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
     }
 }
 

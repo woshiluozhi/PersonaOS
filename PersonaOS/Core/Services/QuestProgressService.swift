@@ -285,6 +285,18 @@ struct QuestProgressService {
     func todayTasks(from tasks: [TaskItem], date: Date = Date(), calendar: Calendar = .current) -> [TaskItem] {
         displayableTasks(tasks).filter { task in
             if task.taskType == QuestType.daily.rawValue {
+                if let dueDate = task.dueDate {
+                    if task.isCompleted {
+                        guard let completedAt = task.completedAt else {
+                            return calendar.isDate(dueDate, inSameDayAs: date)
+                        }
+
+                        return calendar.isDate(completedAt, inSameDayAs: date)
+                    }
+
+                    return calendar.isDate(dueDate, inSameDayAs: date)
+                }
+
                 if !task.isCompleted {
                     return true
                 }
@@ -326,9 +338,7 @@ struct QuestProgressService {
         calendar: Calendar = .current
     ) -> [TaskItem] {
         let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let searchTerms = trimmedSearch
-            .components(separatedBy: .whitespacesAndNewlines)
-            .filter { !$0.isEmpty }
+        let searchTerms = taskSearchTerms(from: trimmedSearch)
         let searchableTasks = displayableTasks(tasks)
         guard !searchTerms.isEmpty else {
             return searchableTasks
@@ -347,6 +357,10 @@ struct QuestProgressService {
             if let dueDate = task.dueDate {
                 dateMetadata.append(PersonaDate.displayDate(dueDate))
                 dateMetadata.append(PersonaDate.relativeDayTitle(dueDate, relativeTo: date, calendar: calendar))
+                if dueDate < calendar.startOfDay(for: date), !task.isCompleted {
+                    dateMetadata.append("已过期")
+                    dateMetadata.append("逾期")
+                }
             }
 
             if let completedAt = task.completedAt {
@@ -363,9 +377,54 @@ struct QuestProgressService {
             ] + dateMetadata
 
             return searchTerms.allSatisfy { term in
-                searchableFields.contains { $0.localizedCaseInsensitiveContains(term) }
+                taskSearchFields(searchableFields, match: term)
             }
         }
+    }
+
+    private func taskSearchFields(_ searchableFields: [String], match term: String) -> Bool {
+        if isExactXPTaskSearchTerm(term) {
+            return searchableFields.contains { field in
+                field.localizedCaseInsensitiveCompare(term) == .orderedSame
+            }
+        }
+
+        return searchableFields.contains { $0.localizedCaseInsensitiveContains(term) }
+    }
+
+    private func taskSearchTerms(from searchText: String) -> [String] {
+        let rawTerms = searchText
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+        var searchTerms: [String] = []
+        var index = 0
+
+        while index < rawTerms.count {
+            let term = rawTerms[index]
+            if index + 1 < rawTerms.count,
+               Int(term) != nil,
+               rawTerms[index + 1].caseInsensitiveCompare("XP") == .orderedSame {
+                searchTerms.append("\(term) XP")
+                index += 2
+            } else {
+                searchTerms.append(term)
+                index += 1
+            }
+        }
+
+        return searchTerms
+    }
+
+    private func isExactXPTaskSearchTerm(_ term: String) -> Bool {
+        let parts = term
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+
+        guard parts.count == 2, Int(parts[0]) != nil else {
+            return false
+        }
+
+        return parts[1].caseInsensitiveCompare("XP") == .orderedSame
     }
 
     func sortedIncompleteTasksForAction(

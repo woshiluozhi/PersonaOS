@@ -58,13 +58,23 @@ final class OpenAIClientTests: XCTestCase {
 
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer sk-test")
         XCTAssertTrue(bodyString.contains("\"model\":\"gpt-5.2\""))
+        XCTAssertTrue(bodyString.contains("\"store\":false"))
+        XCTAssertTrue(bodyString.contains("\"type\":\"json_schema\""))
+        XCTAssertTrue(bodyString.contains("\"name\":\"personaos_ai_response\""))
+        XCTAssertTrue(bodyString.contains("\"strict\":true"))
+        XCTAssertTrue(bodyString.contains("\"additionalProperties\":false"))
+        XCTAssertTrue(bodyString.contains("\"assistantMessage\""))
+        XCTAssertTrue(bodyString.contains("\"suggestedMemories\""))
+        XCTAssertTrue(bodyString.contains("\"suggestedTasks\""))
+        XCTAssertTrue(bodyString.contains("\"riskFlags\""))
+        XCTAssertFalse(bodyString.contains("\"type\":\"json_object\""))
         XCTAssertTrue(bodyString.contains("我该做什么"))
         XCTAssertTrue(bodyString.contains("记忆 5"))
         XCTAssertFalse(bodyString.contains("记忆 6"))
         XCTAssertTrue(bodyString.contains("复盘 3"))
         XCTAssertFalse(bodyString.contains("复盘 4"))
-        XCTAssertTrue(bodyString.contains("主线 5"))
-        XCTAssertFalse(bodyString.contains("主线 6"))
+        XCTAssertTrue(bodyString.contains("主线 1"))
+        XCTAssertFalse(bodyString.contains("主线 2"))
     }
 
     func testResponseParserReadsStructuredAIResponse() throws {
@@ -88,6 +98,31 @@ final class OpenAIClientTests: XCTestCase {
         XCTAssertEqual(response.suggestedMemories, ["用户重视主线"])
         XCTAssertEqual(response.suggestedTasks, ["完成一个闭环"])
         XCTAssertEqual(response.riskFlags, ["overdue_tasks"])
+    }
+
+    func testResponseParserSkipsOutputItemsWithoutText() throws {
+        let json = """
+        {
+          "output": [
+            {
+              "type": "reasoning"
+            },
+            {
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "{\\"assistantMessage\\":\\"先把任务闭环。\\",\\"suggestedMemories\\":[],\\"suggestedTasks\\":[\\"完成最小闭环\\"],\\"riskFlags\\":[]}"
+                }
+              ]
+            }
+          ]
+        }
+        """
+
+        let response = try OpenAIResponseParser().parse(Data(json.utf8))
+
+        XCTAssertEqual(response.assistantMessage, "先把任务闭环。")
+        XCTAssertEqual(response.suggestedTasks, ["完成最小闭环"])
     }
 
     func testFallbackClientUsesLocalModeWhenPrimaryFails() async throws {

@@ -45,8 +45,19 @@ private enum StartupState {
             DailyReport.self,
             ChatMessage.self
         ])
+        if !isInMemory {
+            try prepareApplicationSupportDirectory()
+        }
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: isInMemory)
         return try ModelContainer(for: schema, configurations: [configuration])
+    }
+
+    private static func prepareApplicationSupportDirectory() throws {
+        guard let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return
+        }
+
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
     }
 }
 

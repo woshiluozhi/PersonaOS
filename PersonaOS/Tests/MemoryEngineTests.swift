@@ -415,6 +415,8 @@ final class MemoryEngineTests: XCTestCase {
 
 @MainActor
 final class DemoDataSeederTests: XCTestCase {
+    private var retainedContainers: [ModelContainer] = []
+
     func testProfileEditableFieldsNormalizeBlankTextAndBounds() {
         let now = Date(timeIntervalSince1970: 123)
         let user = UserProfile(
@@ -567,6 +569,7 @@ final class DemoDataSeederTests: XCTestCase {
         ])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: schema, configurations: [configuration])
+        retainedContainers.append(container)
         return container.mainContext
     }
 }

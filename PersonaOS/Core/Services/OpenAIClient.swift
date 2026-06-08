@@ -59,7 +59,8 @@ struct OpenAIRequestBuilder {
                 .system(systemInstructions),
                 .user(contextPrompt(userMessage: userMessage, context: context))
             ],
-            text: OpenAITextConfig(format: OpenAITextFormat.jsonObject)
+            text: OpenAITextConfig(format: OpenAITextFormat.personaOSAIResponse),
+            store: false
         )
     }
 
@@ -108,6 +109,7 @@ struct OpenAIResponsesRequest: Encodable, Equatable {
     var model: String
     var input: [OpenAIInputMessage]
     var text: OpenAITextConfig
+    var store: Bool
 }
 
 enum OpenAIInputMessage: Encodable, Equatable {
@@ -137,9 +139,55 @@ struct OpenAITextConfig: Encodable, Equatable {
 }
 
 struct OpenAITextFormat: Encodable, Equatable {
-    static let jsonObject = OpenAITextFormat(type: "json_object")
+    static let personaOSAIResponse = OpenAITextFormat(
+        type: "json_schema",
+        name: "personaos_ai_response",
+        strict: true,
+        schema: OpenAIAssistantResponseSchema()
+    )
 
     var type: String
+    var name: String?
+    var strict: Bool?
+    var schema: OpenAIAssistantResponseSchema?
+}
+
+struct OpenAIAssistantResponseSchema: Encodable, Equatable {
+    var type = "object"
+    var properties = OpenAIAssistantResponseSchemaProperties()
+    var required = [
+        "assistantMessage",
+        "suggestedMemories",
+        "suggestedTasks",
+        "riskFlags"
+    ]
+    var additionalProperties = false
+}
+
+struct OpenAIAssistantResponseSchemaProperties: Encodable, Equatable {
+    var assistantMessage = OpenAIStringSchema(
+        description: "给用户看的中文回复，保持药老风格：直接、长期主义、不盲目迎合。"
+    )
+    var suggestedMemories = OpenAIStringArraySchema(
+        description: "可选候选记忆短句。AI 只能建议，用户确认后才会保存。"
+    )
+    var suggestedTasks = OpenAIStringArraySchema(
+        description: "可选今日任务标题。AI 只能建议，用户确认后才会创建。"
+    )
+    var riskFlags = OpenAIStringArraySchema(
+        description: "可选风险标签，例如 overdue_tasks、scope_creep、unclear_main_quest。"
+    )
+}
+
+struct OpenAIStringSchema: Encodable, Equatable {
+    var type = "string"
+    var description: String?
+}
+
+struct OpenAIStringArraySchema: Encodable, Equatable {
+    var type = "array"
+    var description: String?
+    var items = OpenAIStringSchema()
 }
 
 struct EssentialAIContextSnapshot: Encodable, Equatable {
@@ -159,7 +207,7 @@ struct EssentialAIContextSnapshot: Encodable, Equatable {
         companionName = Self.cleaned(context.companionName, fallback: "药老")
         userLevel = max(context.userLevel, 1)
         currentXP = max(context.currentXP, 0)
-        activeQuestTitles = Self.cleanedItems(context.activeQuestTitles, limit: 5)
+        activeQuestTitles = Self.cleanedItems(context.activeQuestTitles, limit: 1)
         todayTaskTitles = Self.cleanedItems(context.todayTaskTitles, limit: 12)
         completedTodayTaskTitles = Self.cleanedItems(context.completedTodayTaskTitles, limit: 12)
         overdueTaskTitles = Self.cleanedItems(context.overdueTaskTitles, limit: 8)
@@ -246,7 +294,7 @@ private struct OpenAIResponsesResponse: Decodable {
         }
 
         return output?
-            .flatMap(\.content)
+            .flatMap { $0.content ?? [] }
             .compactMap(\.text)
             .first
     }
@@ -258,7 +306,7 @@ private struct OpenAIResponsesResponse: Decodable {
 }
 
 private struct OpenAIOutputItem: Decodable {
-    var content: [OpenAIOutputContent]
+    var content: [OpenAIOutputContent]?
 }
 
 private struct OpenAIOutputContent: Decodable {

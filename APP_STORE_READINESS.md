@@ -8,13 +8,14 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Asset catalog: present and wired into the app target.
 - Privacy manifest: present at `PersonaOS/Resources/PrivacyInfo.xcprivacy` and wired into the app target resources.
 - Privacy manifest declarations: no tracking; name and user-generated content are declared for app functionality and product personalization.
-- AI mode: OpenAI API Key is saved only in iOS Keychain; chat sends bounded essential context and falls back to local mode.
+- AI mode: OpenAI API Key is saved only in iOS Keychain; chat sends bounded essential context through the Responses API, parses structured JSON output, and falls back to local mode.
 - Production-style bundle identifier: app target uses `com.woshiluozhi.personaos`; test target uses `com.woshiluozhi.personaos.tests`.
 - Draft App Store metadata: present in `APP_STORE_METADATA.md`.
 - Draft privacy policy: present in `PRIVACY_POLICY_DRAFT.md`.
 - iPhone orientation: restricted to portrait to match the verified UI.
 - In-app review/privacy cues: Settings shows version, bundle identifier, portrait-only status, AI mode boundary, and support/privacy policy reminder.
-- Build verification: latest App Store readiness work passes `xcodebuild -scheme PersonaOS -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath ./DerivedData build-for-testing`.
+- Local data controls: Settings can export local SwiftData content as JSON and can clear chat, memories, reports, ignored memories, or reset demo data. The export excludes the OpenAI API Key stored in Keychain.
+- Build verification: latest App Store readiness work passes 159 unit tests, `xcodebuild -scheme PersonaOS -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath ./DerivedData build-for-testing`, and Release generic iOS build with `CODE_SIGNING_ALLOWED=NO`.
 
 ## Remaining Before Submission
 

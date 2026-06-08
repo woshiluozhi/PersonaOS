@@ -31,11 +31,11 @@ When real AI chat is enabled, PersonaOS sends only the context needed to generat
 
 - Your current message
 - Profile and companion display names
-- Current quest and task summaries
+- Current main quest and task summaries
 - Recent confirmed memories
 - Recent daily review summaries
 
-PersonaOS does not read other apps, record audio, access location, access Health data, access Calendar data, or send full local history by default.
+PersonaOS does not read other apps, access Contacts, record audio, access location, access Health data, access Calendar data, collect data in the background, or send full local chat history by default.
 
 OpenAI processes the information according to its own terms and privacy policy. You should review OpenAI's policies before enabling real AI chat.
 

@@ -35,6 +35,8 @@
 		000000000000000000000126 /* OpenAIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000226 /* OpenAIClientTests.swift */; };
 		000000000000000000000127 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000227 /* Assets.xcassets */; };
 		000000000000000000000128 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000228 /* PrivacyInfo.xcprivacy */; };
+		000000000000000000000129 /* LocalDataExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000229 /* LocalDataExportService.swift */; };
+		000000000000000000000130 /* LocalDataExportServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000230 /* LocalDataExportServiceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +78,8 @@
 		000000000000000000000226 /* OpenAIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIClientTests.swift; sourceTree = "<group>"; };
 		000000000000000000000227 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		000000000000000000000228 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		000000000000000000000229 /* LocalDataExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDataExportService.swift; sourceTree = "<group>"; };
+		000000000000000000000230 /* LocalDataExportServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDataExportServiceTests.swift; sourceTree = "<group>"; };
 		000000000000000000000501 /* PersonaOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PersonaOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000502 /* PersonaOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PersonaOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -170,6 +174,7 @@
 				000000000000000000000224 /* ChatHistoryServiceTests.swift */,
 				000000000000000000000225 /* AISuggestionSanitizerTests.swift */,
 				000000000000000000000226 /* OpenAIClientTests.swift */,
+				000000000000000000000230 /* LocalDataExportServiceTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -196,6 +201,7 @@
 				000000000000000000000217 /* AISuggestionSanitizer.swift */,
 				000000000000000000000216 /* ChatHistoryService.swift */,
 				000000000000000000000218 /* KeychainAPIKeyStore.swift */,
+				000000000000000000000229 /* LocalDataExportService.swift */,
 				000000000000000000000219 /* OpenAIClient.swift */,
 				000000000000000000000206 /* QuestProgressService.swift */,
 				000000000000000000000207 /* MemoryEngine.swift */,
@@ -388,6 +394,7 @@
 				000000000000000000000116 /* ChatHistoryService.swift in Sources */,
 				000000000000000000000117 /* AISuggestionSanitizer.swift in Sources */,
 				000000000000000000000118 /* KeychainAPIKeyStore.swift in Sources */,
+				000000000000000000000129 /* LocalDataExportService.swift in Sources */,
 				000000000000000000000119 /* OpenAIClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -403,6 +410,7 @@
 				000000000000000000000124 /* ChatHistoryServiceTests.swift in Sources */,
 				000000000000000000000125 /* AISuggestionSanitizerTests.swift in Sources */,
 				000000000000000000000126 /* OpenAIClientTests.swift in Sources */,
+				000000000000000000000130 /* LocalDataExportServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

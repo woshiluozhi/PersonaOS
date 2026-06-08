@@ -252,6 +252,7 @@ final class QuestProgressServiceTests: XCTestCase {
         let companion = CompanionPersona()
         let completedYesterday = TaskItem(
             title: "提前完成",
+            taskType: QuestType.side.rawValue,
             isCompleted: true,
             xpReward: 30,
             dueDate: today,

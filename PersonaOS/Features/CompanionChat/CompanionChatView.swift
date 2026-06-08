@@ -106,6 +106,10 @@ struct CompanionChatView: View {
                                     tint: .orange
                                 )
                             }
+
+                            if isSending {
+                                ChatLoadingView(companionName: companionDisplayName)
+                            }
                         }
                         .padding()
                     }
@@ -322,7 +326,7 @@ struct CompanionChatView: View {
         let currentMainQuest = progressService.currentMainQuest(from: quests)
         let task = TaskItem(
             title: cleanedTitle,
-            detail: "由药老本地建议生成。",
+            detail: "由药老建议生成。",
             taskType: QuestType.daily.rawValue,
             questId: currentMainQuest?.id,
             xpReward: 20,
@@ -525,6 +529,32 @@ private struct ChatBubble: View {
             if !isUser {
                 Spacer(minLength: 40)
             }
+        }
+    }
+}
+
+private struct ChatLoadingView: View {
+    let companionName: String
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(companionName)
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 8) {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("正在判断...")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(12)
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            Spacer(minLength: 40)
         }
     }
 }
