@@ -43,7 +43,7 @@ Use `REAL_AI_INTERACTION.md` for the exact Settings and Chat flow when running A
 | RD-11 | Delete API Key | Save a test key, delete it in Settings, then send a chat message. | Key is removed; chat returns to local mode. | Not run |
 | RD-12 | Settings privacy copy | Inspect Settings AI/privacy sections. | Copy says real AI sends bounded context only; no hidden permissions are implied. | Not run |
 | RD-13 | Portrait-only UI | Rotate the device and inspect each tab. | App remains portrait; no clipped tab labels or overlapping text. | Not run |
-| RD-14 | Public pages | Open final Support URL and Privacy Policy URL over HTTPS. | Both pages load publicly and match the submitted app behavior. | Not run |
+| RD-14 | Public pages | Open final Support URL and Privacy Policy URL over HTTPS, then open the in-app Settings links for Support, Privacy Policy, and Accessibility. | All pages load publicly and match the submitted app behavior. | Not run |
 | RD-15 | Screenshot validation | Capture the required six screenshots and run `scripts/verify_app_store_readiness.sh --with-screenshots`. | Screenshot validator passes; screenshots contain no private data or API keys. | Not run |
 | RD-16 | Accessibility smoke | Run common tasks with VoiceOver enabled, Larger Text at 200%, and light/dark appearances. | Do not publish accessibility support claims unless all common tasks pass for that feature. | Not run |
 

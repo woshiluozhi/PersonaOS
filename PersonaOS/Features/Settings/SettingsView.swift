@@ -30,6 +30,10 @@ struct SettingsView: View {
     private let apiKeyStore = KeychainAPIKeyStore()
     private let exportService = LocalDataExportService()
 
+    private static let supportURL = URL(string: "https://woshiluozhi.github.io/PersonaOS/support.html")!
+    private static let privacyPolicyURL = URL(string: "https://woshiluozhi.github.io/PersonaOS/privacy.html")!
+    private static let accessibilityURL = URL(string: "https://woshiluozhi.github.io/PersonaOS/accessibility.html")!
+
     private var questSummary: QuestCollectionSummary {
         progressService.questSummary(for: quests)
     }
@@ -251,6 +255,24 @@ struct SettingsView: View {
                     """)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                }
+
+                Section("支持与政策") {
+                    Link(destination: Self.supportURL) {
+                        Label("支持", systemImage: "questionmark.circle")
+                    }
+
+                    Link(destination: Self.privacyPolicyURL) {
+                        Label("隐私政策", systemImage: "hand.raised")
+                    }
+
+                    Link(destination: Self.accessibilityURL) {
+                        Label("无障碍", systemImage: "accessibility")
+                    }
+
+                    Text("提交前需确认这些 HTTPS 页面已经公开发布。")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
 
                 Section("隐私与审核") {

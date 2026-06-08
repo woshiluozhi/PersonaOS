@@ -24,6 +24,7 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | Metadata draft | `APP_STORE_METADATA.md` | Drafted |
 | Privacy policy draft | `PRIVACY_POLICY_DRAFT.md` | Drafted, needs public URL |
 | Public support/privacy pages | `docs/support.html`, `docs/privacy.html`, `APP_STORE_PUBLIC_PAGES.md` | Drafted, needs GitHub Pages or static hosting |
+| In-app public links | `PersonaOS/Features/Settings/SettingsView.swift` | Wired to candidate Support, Privacy Policy, and Accessibility URLs |
 | Real AI interaction handoff | `REAL_AI_INTERACTION.md` | Documented, needs real-key and offline smoke on final build |
 | Accessibility labels | `APP_STORE_ACCESSIBILITY.md`, `docs/accessibility.html` | Drafted, needs real-device audit before claims |
 | Privacy answers | `APP_STORE_PRIVACY_ANSWERS.md` | Drafted, needs account-owner review |
@@ -107,7 +108,7 @@ Then manually test on a real iPhone:
 3. Configure App Store distribution signing in Xcode or CI.
 4. Create the App Store Connect app record.
 5. Enter metadata from `APP_STORE_METADATA.md`.
-6. Publish `docs/support.html` and `docs/privacy.html` with GitHub Pages or another HTTPS host.
+6. Publish `docs/support.html`, `docs/privacy.html`, and `docs/accessibility.html` with GitHub Pages or another HTTPS host.
 7. Enter the final Support URL and Privacy Policy URL.
 8. Enter App Privacy answers from `APP_STORE_PRIVACY_ANSWERS.md`.
 9. Answer the Age Ratings questionnaire using `APP_STORE_AGE_RATING.md` and confirm the calculated rating.
@@ -126,6 +127,7 @@ Do not submit if any of these are true:
 - A real API Key appears in source, logs, screenshots, or exported JSON.
 - Distribution signing is not configured.
 - Privacy Policy URL or Support URL is missing.
+- In-app public links do not load over HTTPS.
 - Age rating has not been confirmed in App Store Connect.
 - Required screenshots have not passed `scripts/validate_app_store_screenshots.sh`.
 - Screenshots contain private data or clipped/overlapping UI.

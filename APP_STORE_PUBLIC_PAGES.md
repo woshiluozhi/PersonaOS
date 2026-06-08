@@ -40,6 +40,10 @@ Apple requires a Privacy Policy URL for iOS apps. The current privacy page cover
 
 Accessibility Nutrition Labels are voluntary at the time of this draft, but App Store Connect can display an optional accessibility URL. The current page explains the features PersonaOS is evaluating and avoids claiming unsupported accessibility labels before real-device QA.
 
+## In-App Links
+
+`SettingsView` includes tappable links to the candidate Support, Privacy Policy, and Accessibility URLs. Before App Store submission, enable GitHub Pages or replace these URLs with the final public host so the in-app links, App Store Connect metadata, and public pages all match.
+
 ## GitHub Pages Setup
 
 The repository owner can publish the pages by enabling GitHub Pages in repository settings:
@@ -58,6 +62,7 @@ The repository owner can publish the pages by enabling GitHub Pages in repositor
 Do not submit the app if:
 
 - Either final URL does not load publicly over HTTPS.
+- In-app Support, Privacy Policy, or Accessibility links point to a host that has not been published.
 - The support page lacks a usable support contact path.
 - The privacy page does not match the submitted app's actual data behavior.
 - The support or privacy page contains real API keys, private task data, private memories, or placeholder contact instructions.

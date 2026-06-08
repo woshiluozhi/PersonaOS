@@ -198,10 +198,14 @@ if [[ -f "$PROJECT_FILE" ]]; then
   require_grep 'IPHONEOS_DEPLOYMENT_TARGET = 17\.0;' "$PROJECT_FILE" "iOS deployment target is 17.0"
   require_grep 'ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;' "$PROJECT_FILE" "App icon asset is wired to target"
   require_grep 'PrivacyInfo\.xcprivacy' "$PROJECT_FILE" "Privacy manifest is wired to target"
-  require_grep 'INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;' "$PROJECT_FILE" "iPhone orientation is portrait"
-  require_grep 'INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;' "$PROJECT_FILE" "App declares no non-exempt encryption"
-  require_grep 'TARGETED_DEVICE_FAMILY = 1;' "$PROJECT_FILE" "App target is iPhone family"
+require_grep 'INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;' "$PROJECT_FILE" "iPhone orientation is portrait"
+require_grep 'INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;' "$PROJECT_FILE" "App declares no non-exempt encryption"
+require_grep 'TARGETED_DEVICE_FAMILY = 1;' "$PROJECT_FILE" "App target is iPhone family"
 fi
+
+require_grep 'https://woshiluozhi\.github\.io/PersonaOS/support\.html' "PersonaOS/Features/Settings/SettingsView.swift" "Settings links to public Support URL"
+require_grep 'https://woshiluozhi\.github\.io/PersonaOS/privacy\.html' "PersonaOS/Features/Settings/SettingsView.swift" "Settings links to public Privacy Policy URL"
+require_grep 'https://woshiluozhi\.github\.io/PersonaOS/accessibility\.html' "PersonaOS/Features/Settings/SettingsView.swift" "Settings links to public Accessibility URL"
 
 echo
 echo "== Permissions and capabilities =="
