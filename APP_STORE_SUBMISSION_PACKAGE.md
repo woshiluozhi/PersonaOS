@@ -96,6 +96,12 @@ After capturing screenshots, run:
 scripts/verify_app_store_readiness.sh --with-screenshots
 ```
 
+After enabling GitHub Pages or the final public host, run:
+
+```sh
+scripts/verify_app_store_readiness.sh --with-public-pages
+```
+
 Then manually test on a real iPhone:
 
 - Run the complete matrix in `APP_STORE_REAL_DEVICE_QA.md`.
@@ -109,15 +115,16 @@ Then manually test on a real iPhone:
 4. Create the App Store Connect app record.
 5. Enter metadata from `APP_STORE_METADATA.md`.
 6. Publish `docs/support.html`, `docs/privacy.html`, and `docs/accessibility.html` with GitHub Pages or another HTTPS host.
-7. Enter the final Support URL and Privacy Policy URL.
-8. Enter App Privacy answers from `APP_STORE_PRIVACY_ANSWERS.md`.
-9. Answer the Age Ratings questionnaire using `APP_STORE_AGE_RATING.md` and confirm the calculated rating.
-10. Review `REAL_AI_INTERACTION.md` and verify no-key, invalid-key, real-key, and offline fallback chat on the final build.
-11. Review `APP_STORE_ACCESSIBILITY.md`; publish only Accessibility Nutrition Label claims verified on the final build.
-12. Capture and upload screenshots from the screenshot set above.
-13. Archive and upload the signed build.
-14. Select the uploaded build for PersonaOS 1.0.
-15. Add the app version for review, then submit for review.
+7. Run `scripts/verify_app_store_readiness.sh --with-public-pages`.
+8. Enter the final Support URL and Privacy Policy URL.
+9. Enter App Privacy answers from `APP_STORE_PRIVACY_ANSWERS.md`.
+10. Answer the Age Ratings questionnaire using `APP_STORE_AGE_RATING.md` and confirm the calculated rating.
+11. Review `REAL_AI_INTERACTION.md` and verify no-key, invalid-key, real-key, and offline fallback chat on the final build.
+12. Review `APP_STORE_ACCESSIBILITY.md`; publish only Accessibility Nutrition Label claims verified on the final build.
+13. Capture and upload screenshots from the screenshot set above.
+14. Archive and upload the signed build.
+15. Select the uploaded build for PersonaOS 1.0.
+16. Add the app version for review, then submit for review.
 
 ## No-Go Conditions
 
@@ -128,6 +135,7 @@ Do not submit if any of these are true:
 - Distribution signing is not configured.
 - Privacy Policy URL or Support URL is missing.
 - In-app public links do not load over HTTPS.
+- `scripts/verify_app_store_readiness.sh --with-public-pages` fails after the final public host is configured.
 - Age rating has not been confirmed in App Store Connect.
 - Required screenshots have not passed `scripts/validate_app_store_screenshots.sh`.
 - Screenshots contain private data or clipped/overlapping UI.

@@ -55,13 +55,25 @@ The repository owner can publish the pages by enabling GitHub Pages in repositor
 5. Save and wait for GitHub Pages to publish.
 6. Open both candidate URLs and confirm they load over HTTPS.
 7. Open the candidate Accessibility URL if completing Accessibility Nutrition Labels.
-8. Enter the final URLs in App Store Connect.
+8. Run `scripts/verify_app_store_readiness.sh --with-public-pages` and confirm all public page checks pass.
+9. Enter the final URLs in App Store Connect.
+
+## Verification Command
+
+After GitHub Pages or another static host is enabled, run:
+
+```sh
+scripts/verify_app_store_readiness.sh --with-public-pages
+```
+
+This optional gate checks that the candidate Support, Privacy Policy, and Accessibility URLs return HTML over HTTPS and contain the expected PersonaOS page titles. It is expected to fail while GitHub Pages is not enabled.
 
 ## No-Go Conditions
 
 Do not submit the app if:
 
 - Either final URL does not load publicly over HTTPS.
+- `scripts/verify_app_store_readiness.sh --with-public-pages` fails after the final public host is configured.
 - In-app Support, Privacy Policy, or Accessibility links point to a host that has not been published.
 - The support page lacks a usable support contact path.
 - The privacy page does not match the submitted app's actual data behavior.

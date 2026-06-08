@@ -8,6 +8,7 @@ cd "$ROOT_DIR" || exit 1
 WITH_BUILD=0
 WITH_TESTS=0
 WITH_SCREENSHOTS=0
+WITH_PUBLIC_PAGES=0
 
 for arg in "$@"; do
   case "$arg" in
@@ -20,9 +21,12 @@ for arg in "$@"; do
     --with-screenshots)
       WITH_SCREENSHOTS=1
       ;;
+    --with-public-pages)
+      WITH_PUBLIC_PAGES=1
+      ;;
     -h|--help)
       cat <<'USAGE'
-Usage: scripts/verify_app_store_readiness.sh [--with-build] [--with-tests] [--with-screenshots]
+Usage: scripts/verify_app_store_readiness.sh [--with-build] [--with-tests] [--with-screenshots] [--with-public-pages]
 
 Static checks run by default:
   - Required App Store docs exist.
@@ -44,6 +48,8 @@ Optional:
   --with-tests  Run the full iPhone 17 simulator test suite.
   --with-screenshots
                 Validate the complete App Store screenshot set in BuildLogs/AppStoreScreenshots.
+  --with-public-pages
+                Verify candidate Support, Privacy Policy, and Accessibility URLs load over HTTPS.
 USAGE
       exit 0
       ;;
@@ -103,6 +109,33 @@ require_command() {
   else
     fail "$1 is not available"
   fi
+}
+
+require_public_page() {
+  local label="$1"
+  local url="$2"
+  local title_pattern="$3"
+  local output_file="/tmp/personaos-public-page.html"
+  local response
+  local status
+  local content_type
+
+  response="$(curl -L -sS -o "$output_file" -w '%{http_code} %{content_type}' "$url" 2>/tmp/personaos-public-page-curl.txt)"
+  status="${response%% *}"
+  content_type="${response#* }"
+
+  if [[ ! "$status" =~ ^2[0-9][0-9]$ ]]; then
+    cat /tmp/personaos-public-page-curl.txt >&2
+    fail "$label URL did not return 2xx: $url ($status)"
+  elif [[ "$content_type" != text/html* ]]; then
+    fail "$label URL did not return HTML: $url ($content_type)"
+  elif grep -Eq "$title_pattern" "$output_file"; then
+    pass "$label URL loads over HTTPS with expected content"
+  else
+    fail "$label URL loads but expected page title was not found: $url"
+  fi
+
+  rm -f "$output_file" /tmp/personaos-public-page-curl.txt
 }
 
 plist_raw() {
@@ -198,9 +231,9 @@ if [[ -f "$PROJECT_FILE" ]]; then
   require_grep 'IPHONEOS_DEPLOYMENT_TARGET = 17\.0;' "$PROJECT_FILE" "iOS deployment target is 17.0"
   require_grep 'ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;' "$PROJECT_FILE" "App icon asset is wired to target"
   require_grep 'PrivacyInfo\.xcprivacy' "$PROJECT_FILE" "Privacy manifest is wired to target"
-require_grep 'INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;' "$PROJECT_FILE" "iPhone orientation is portrait"
-require_grep 'INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;' "$PROJECT_FILE" "App declares no non-exempt encryption"
-require_grep 'TARGETED_DEVICE_FAMILY = 1;' "$PROJECT_FILE" "App target is iPhone family"
+  require_grep 'INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;' "$PROJECT_FILE" "iPhone orientation is portrait"
+  require_grep 'INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;' "$PROJECT_FILE" "App declares no non-exempt encryption"
+  require_grep 'TARGETED_DEVICE_FAMILY = 1;' "$PROJECT_FILE" "App target is iPhone family"
 fi
 
 require_grep 'https://woshiluozhi\.github\.io/PersonaOS/support\.html' "PersonaOS/Features/Settings/SettingsView.swift" "Settings links to public Support URL"
@@ -275,6 +308,7 @@ require_grep 'developer\.apple\.com/help/app-store-connect/manage-app-informatio
 require_grep 'https://woshiluozhi\.github\.io/PersonaOS/support\.html' "APP_STORE_PUBLIC_PAGES.md" "Public pages doc includes candidate Support URL"
 require_grep 'https://woshiluozhi\.github\.io/PersonaOS/privacy\.html' "APP_STORE_PUBLIC_PAGES.md" "Public pages doc includes candidate Privacy Policy URL"
 require_grep 'https://woshiluozhi\.github\.io/PersonaOS/accessibility\.html' "APP_STORE_PUBLIC_PAGES.md" "Public pages doc includes candidate Accessibility URL"
+require_grep 'scripts/verify_app_store_readiness\.sh --with-public-pages' "APP_STORE_PUBLIC_PAGES.md" "Public pages doc includes public-page verification gate"
 require_grep 'No-key local chat mode' "APP_STORE_REAL_DEVICE_QA.md" "Real-device QA covers no-key local mode"
 require_grep 'Invalid-key fallback' "APP_STORE_REAL_DEVICE_QA.md" "Real-device QA covers invalid-key fallback"
 require_grep 'Real-key AI chat mode' "APP_STORE_REAL_DEVICE_QA.md" "Real-device QA covers real-key AI mode"
@@ -317,6 +351,15 @@ if [[ "$WITH_SCREENSHOTS" == "1" ]]; then
   else
     fail "Complete App Store screenshot set failed validation"
   fi
+fi
+
+if [[ "$WITH_PUBLIC_PAGES" == "1" ]]; then
+  echo
+  echo "== Public page validation =="
+  require_command curl
+  require_public_page "Support" "https://woshiluozhi.github.io/PersonaOS/support.html" "PersonaOS Support"
+  require_public_page "Privacy Policy" "https://woshiluozhi.github.io/PersonaOS/privacy.html" "PersonaOS Privacy Policy"
+  require_public_page "Accessibility" "https://woshiluozhi.github.io/PersonaOS/accessibility.html" "PersonaOS Accessibility"
 fi
 
 if [[ "$WITH_TESTS" == "1" ]]; then
