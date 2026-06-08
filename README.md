@@ -56,6 +56,8 @@ Recent successful logs are recorded in `CODEX_REPORT.md`. Full XCTest execution 
 
 See `APP_STORE_READINESS.md` for the current submission checklist, completed engineering items, and remaining account/legal/App Store Connect tasks. Draft submission copy lives in `APP_STORE_METADATA.md`, App Store privacy answers live in `APP_STORE_PRIVACY_ANSWERS.md`, age rating answers live in `APP_STORE_AGE_RATING.md`, screenshot planning lives in `APP_STORE_SCREENSHOTS.md`, public support/privacy page planning lives in `APP_STORE_PUBLIC_PAGES.md`, the App Store Connect handoff checklist lives in `APP_STORE_SUBMISSION_PACKAGE.md`, and a publishable privacy policy draft lives in `PRIVACY_POLICY_DRAFT.md`.
 
+After capturing App Store screenshots, run `scripts/verify_app_store_readiness.sh --with-screenshots` to validate the complete required screenshot set before upload.
+
 ## Notes
 
 - All app data is local SwiftData.

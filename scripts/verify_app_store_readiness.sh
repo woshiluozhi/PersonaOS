@@ -7,6 +7,7 @@ cd "$ROOT_DIR" || exit 1
 
 WITH_BUILD=0
 WITH_TESTS=0
+WITH_SCREENSHOTS=0
 
 for arg in "$@"; do
   case "$arg" in
@@ -16,9 +17,12 @@ for arg in "$@"; do
     --with-tests)
       WITH_TESTS=1
       ;;
+    --with-screenshots)
+      WITH_SCREENSHOTS=1
+      ;;
     -h|--help)
       cat <<'USAGE'
-Usage: scripts/verify_app_store_readiness.sh [--with-build] [--with-tests]
+Usage: scripts/verify_app_store_readiness.sh [--with-build] [--with-tests] [--with-screenshots]
 
 Static checks run by default:
   - Required App Store docs exist.
@@ -38,6 +42,8 @@ Static checks run by default:
 Optional:
   --with-build  Run build-for-testing and Release generic iOS build.
   --with-tests  Run the full iPhone 17 simulator test suite.
+  --with-screenshots
+                Validate the complete App Store screenshot set in BuildLogs/AppStoreScreenshots.
 USAGE
       exit 0
       ;;
@@ -125,6 +131,7 @@ require_file "docs/index.html"
 require_file "docs/privacy.html"
 require_file "docs/support.html"
 require_file "scripts/capture_app_store_screenshot.sh"
+require_file "scripts/validate_app_store_screenshots.sh"
 require_file "$PROJECT_FILE"
 require_file "$PRIVACY_MANIFEST"
 require_file "$APP_ICON_CONTENTS"
@@ -267,6 +274,22 @@ if [[ -x "scripts/capture_app_store_screenshot.sh" ]]; then
   pass "Screenshot capture helper is executable"
 else
   fail "Screenshot capture helper is not executable"
+fi
+
+if [[ -x "scripts/validate_app_store_screenshots.sh" ]]; then
+  pass "Screenshot validation helper is executable"
+else
+  fail "Screenshot validation helper is not executable"
+fi
+
+if [[ "$WITH_SCREENSHOTS" == "1" ]]; then
+  echo
+  echo "== Screenshot validation =="
+  if scripts/validate_app_store_screenshots.sh; then
+    pass "Complete App Store screenshot set passed validation"
+  else
+    fail "Complete App Store screenshot set failed validation"
+  fi
 fi
 
 if [[ "$WITH_TESTS" == "1" ]]; then

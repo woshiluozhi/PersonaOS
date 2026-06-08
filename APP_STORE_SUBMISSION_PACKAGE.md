@@ -25,7 +25,7 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | Public support/privacy pages | `docs/support.html`, `docs/privacy.html`, `APP_STORE_PUBLIC_PAGES.md` | Drafted, needs GitHub Pages or static hosting |
 | Privacy answers | `APP_STORE_PRIVACY_ANSWERS.md` | Drafted, needs account-owner review |
 | Age rating | `APP_STORE_AGE_RATING.md` | Drafted, needs live questionnaire confirmation |
-| Screenshots | `APP_STORE_SCREENSHOTS.md` and `scripts/capture_app_store_screenshot.sh` | Plan ready, final images still need capture |
+| Screenshots | `APP_STORE_SCREENSHOTS.md`, `scripts/capture_app_store_screenshot.sh`, `scripts/validate_app_store_screenshots.sh` | Plan ready, final images still need capture |
 | Engineering gate | `scripts/verify_app_store_readiness.sh --with-build --with-tests` | Run before archive |
 
 ## App Store Connect Values
@@ -84,6 +84,12 @@ Run these before creating the final archive:
 scripts/verify_app_store_readiness.sh --with-build --with-tests
 ```
 
+After capturing screenshots, run:
+
+```sh
+scripts/verify_app_store_readiness.sh --with-screenshots
+```
+
 Then manually test on a real iPhone:
 
 - First launch and demo data.
@@ -122,5 +128,6 @@ Do not submit if any of these are true:
 - Distribution signing is not configured.
 - Privacy Policy URL or Support URL is missing.
 - Age rating has not been confirmed in App Store Connect.
+- Required screenshots have not passed `scripts/validate_app_store_screenshots.sh`.
 - Screenshots contain private data or clipped/overlapping UI.
 - Real-device QA has not covered local mode, real AI mode, invalid key fallback, and offline fallback.

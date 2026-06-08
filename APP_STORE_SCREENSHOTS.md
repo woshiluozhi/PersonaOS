@@ -39,6 +39,14 @@ scripts/capture_app_store_screenshot.sh 01-home
 
 The script writes PNG files to `BuildLogs/AppStoreScreenshots/` and reports whether the captured dimensions match accepted iPhone portrait screenshot sizes.
 
+After capturing all required shots, validate the complete set with:
+
+```sh
+scripts/validate_app_store_screenshots.sh
+```
+
+The validator checks that every required PNG exists, has no alpha channel, uses an accepted iPhone portrait size, and matches the first screenshot's dimensions.
+
 ## Required PersonaOS Shots
 
 Capture at least these six portrait screenshots:
@@ -85,6 +93,7 @@ Capture at least these six portrait screenshots:
 - No copyrighted third-party content.
 - First screenshot should make the product category obvious within the first viewport.
 - The order in App Store Connect should match the user story: Home -> Tasks -> Chat -> Memory -> Review -> Settings.
+- Run `scripts/validate_app_store_screenshots.sh` before upload.
 
 ## App Store Connect Notes
 
