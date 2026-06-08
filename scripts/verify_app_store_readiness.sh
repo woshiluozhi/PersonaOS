@@ -23,6 +23,7 @@ Usage: scripts/verify_app_store_readiness.sh [--with-build] [--with-tests]
 Static checks run by default:
   - Required App Store docs exist.
   - App Store submission package exists.
+  - Public support/privacy page drafts exist.
   - App icon is a 1024 x 1024 PNG without alpha.
   - Privacy manifest is valid and declares no tracking.
   - Project uses the production bundle identifiers.
@@ -116,9 +117,13 @@ require_file "APP_STORE_READINESS.md"
 require_file "APP_STORE_METADATA.md"
 require_file "APP_STORE_PRIVACY_ANSWERS.md"
 require_file "APP_STORE_AGE_RATING.md"
+require_file "APP_STORE_PUBLIC_PAGES.md"
 require_file "PRIVACY_POLICY_DRAFT.md"
 require_file "APP_STORE_SCREENSHOTS.md"
 require_file "APP_STORE_SUBMISSION_PACKAGE.md"
+require_file "docs/index.html"
+require_file "docs/privacy.html"
+require_file "docs/support.html"
 require_file "scripts/capture_app_store_screenshot.sh"
 require_file "$PROJECT_FILE"
 require_file "$PRIVACY_MANIFEST"
@@ -243,6 +248,12 @@ require_grep 'Made for Kids: `No`' "APP_STORE_AGE_RATING.md" "Age rating draft d
 require_grep 'Unrestricted Web Access \| No' "APP_STORE_AGE_RATING.md" "Age rating draft denies unrestricted web access"
 require_grep 'Messaging and Chat \| No' "APP_STORE_AGE_RATING.md" "Age rating draft distinguishes AI chat from user messaging"
 require_grep 'developer\.apple\.com/help/app-store-connect/manage-app-information/set-an-app-age-rating' "APP_STORE_AGE_RATING.md" "Age rating draft links Apple age rating setup reference"
+require_grep 'https://woshiluozhi\.github\.io/PersonaOS/support\.html' "APP_STORE_PUBLIC_PAGES.md" "Public pages doc includes candidate Support URL"
+require_grep 'https://woshiluozhi\.github\.io/PersonaOS/privacy\.html' "APP_STORE_PUBLIC_PAGES.md" "Public pages doc includes candidate Privacy Policy URL"
+require_grep 'PersonaOS Privacy Policy' "docs/privacy.html" "Privacy HTML page has policy title"
+require_grep 'Data Sent to OpenAI' "docs/privacy.html" "Privacy HTML page explains OpenAI data sharing"
+require_grep 'PersonaOS Support' "docs/support.html" "Support HTML page has support title"
+require_grep 'https://github\.com/woshiluozhi/PersonaOS/issues' "docs/support.html" "Support HTML page links support contact path"
 require_grep 'Data Sent to OpenAI' "PRIVACY_POLICY_DRAFT.md" "Privacy policy draft explains OpenAI data sharing"
 require_grep '01-home\.png' "APP_STORE_SCREENSHOTS.md" "Screenshot plan covers Home"
 require_grep '06-settings-ai-privacy\.png' "APP_STORE_SCREENSHOTS.md" "Screenshot plan covers Settings privacy"

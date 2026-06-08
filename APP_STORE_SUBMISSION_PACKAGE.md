@@ -22,6 +22,7 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | Privacy manifest | `PersonaOS/Resources/PrivacyInfo.xcprivacy` | Ready |
 | Metadata draft | `APP_STORE_METADATA.md` | Drafted |
 | Privacy policy draft | `PRIVACY_POLICY_DRAFT.md` | Drafted, needs public URL |
+| Public support/privacy pages | `docs/support.html`, `docs/privacy.html`, `APP_STORE_PUBLIC_PAGES.md` | Drafted, needs GitHub Pages or static hosting |
 | Privacy answers | `APP_STORE_PRIVACY_ANSWERS.md` | Drafted, needs account-owner review |
 | Age rating | `APP_STORE_AGE_RATING.md` | Drafted, needs live questionnaire confirmation |
 | Screenshots | `APP_STORE_SCREENSHOTS.md` and `scripts/capture_app_store_screenshot.sh` | Plan ready, final images still need capture |
@@ -39,8 +40,8 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | Primary language | English unless the owner prefers Chinese metadata |
 | Content rights | Uses original app UI and first-party app icon artwork |
 | Expected age rating | 4+; not Made for Kids; no higher-rating override |
-| Support URL | Required external URL, not yet provided |
-| Privacy Policy URL | Required external URL after publishing `PRIVACY_POLICY_DRAFT.md` |
+| Candidate Support URL | `https://woshiluozhi.github.io/PersonaOS/support.html` after GitHub Pages is enabled |
+| Candidate Privacy Policy URL | `https://woshiluozhi.github.io/PersonaOS/privacy.html` after GitHub Pages is enabled |
 
 ## Screenshot Set
 
@@ -103,13 +104,14 @@ Then manually test on a real iPhone:
 3. Configure App Store distribution signing in Xcode or CI.
 4. Create the App Store Connect app record.
 5. Enter metadata from `APP_STORE_METADATA.md`.
-6. Publish the privacy policy and enter the Privacy Policy URL.
-7. Enter App Privacy answers from `APP_STORE_PRIVACY_ANSWERS.md`.
-8. Answer the Age Ratings questionnaire using `APP_STORE_AGE_RATING.md` and confirm the calculated rating.
-9. Capture and upload screenshots from the screenshot set above.
-10. Archive and upload the signed build.
-11. Select the uploaded build for PersonaOS 1.0.
-12. Add the app version for review, then submit for review.
+6. Publish `docs/support.html` and `docs/privacy.html` with GitHub Pages or another HTTPS host.
+7. Enter the final Support URL and Privacy Policy URL.
+8. Enter App Privacy answers from `APP_STORE_PRIVACY_ANSWERS.md`.
+9. Answer the Age Ratings questionnaire using `APP_STORE_AGE_RATING.md` and confirm the calculated rating.
+10. Capture and upload screenshots from the screenshot set above.
+11. Archive and upload the signed build.
+12. Select the uploaded build for PersonaOS 1.0.
+13. Add the app version for review, then submit for review.
 
 ## No-Go Conditions
 

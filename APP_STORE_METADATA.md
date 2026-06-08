@@ -9,6 +9,8 @@ Use this draft as a starting point for App Store Connect. Final wording, screens
 - Bundle ID: `com.woshiluozhi.personaos`
 - Category: Productivity
 - Expected Age Rating: 4+
+- Candidate Support URL: `https://woshiluozhi.github.io/PersonaOS/support.html` after GitHub Pages is enabled
+- Candidate Privacy Policy URL: `https://woshiluozhi.github.io/PersonaOS/privacy.html` after GitHub Pages is enabled
 - Content Rights: PersonaOS uses original app UI and generated first-party icon artwork.
 
 ## Promotional Text

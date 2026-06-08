@@ -15,6 +15,7 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Draft privacy policy: present in `PRIVACY_POLICY_DRAFT.md`.
 - Draft App Store privacy answers: present in `APP_STORE_PRIVACY_ANSWERS.md`.
 - Draft age rating answers: present in `APP_STORE_AGE_RATING.md`; suggested direction is 4+, not Made for Kids, no higher-rating override, with owner review required.
+- Draft public support/privacy pages: present in `docs/support.html` and `docs/privacy.html`; publishing plan is documented in `APP_STORE_PUBLIC_PAGES.md`.
 - Draft screenshot plan: present in `APP_STORE_SCREENSHOTS.md`; helper script `scripts/capture_app_store_screenshot.sh` captures booted simulator screenshots and checks iPhone portrait dimensions.
 - Draft submission package: present in `APP_STORE_SUBMISSION_PACKAGE.md`; it maps repo evidence to App Store Connect values, screenshot files, QA, and submission steps.
 - Release metadata: app display name is `PersonaOS`, marketing version is `1.0`, build number is `1`, category is Productivity, deployment target is iOS 17.0, and generated launch screen is enabled.
@@ -31,7 +32,8 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Signing: configure the App Store distribution team/profile in Xcode or CI.
 - App Store Connect: create the app record, upload screenshots, description, keywords, support URL, and category metadata.
 - Submission package: follow `APP_STORE_SUBMISSION_PACKAGE.md` while creating the app record, entering metadata, running QA, and submitting for review.
-- Privacy policy: publish the draft privacy policy in `PRIVACY_POLICY_DRAFT.md`, then enter its URL in App Store Connect.
+- Public pages: publish `docs/support.html` and `docs/privacy.html` with GitHub Pages or another static host, then enter the final URLs in App Store Connect.
+- Privacy policy: review `docs/privacy.html` and `PRIVACY_POLICY_DRAFT.md`, then enter the final public Privacy Policy URL in App Store Connect.
 - App privacy answers: review `APP_STORE_PRIVACY_ANSWERS.md`, then disclose user-provided name/content and OpenAI processing accurately in App Store Connect.
 - Age rating: review `APP_STORE_AGE_RATING.md`, answer the live App Store Connect questionnaire, and confirm the calculated rating before submission.
 - Export compliance: confirm `ITSAppUsesNonExemptEncryption = NO` remains accurate for the final build and answer App Store Connect encryption/export questions for HTTPS/TLS and Keychain usage.
@@ -47,6 +49,8 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Expected age rating: 4+
 - Support URL: to be provided by the account owner
 - Privacy Policy URL: to be provided by the account owner
+- Candidate Support URL: `https://woshiluozhi.github.io/PersonaOS/support.html` after GitHub Pages is enabled
+- Candidate Privacy Policy URL: `https://woshiluozhi.github.io/PersonaOS/privacy.html` after GitHub Pages is enabled
 
 ## Review Notes Draft
 

@@ -2,7 +2,7 @@
 
 Last updated: June 8, 2026
 
-This draft is provided for the developer account owner to review, adapt, publish, and link in App Store Connect before submitting PersonaOS to App Review.
+This draft is provided for the developer account owner to review, adapt, publish, and link in App Store Connect before submitting PersonaOS to App Review. A publishable HTML version is also available at `docs/privacy.html`.
 
 ## Overview
 
@@ -49,4 +49,4 @@ You can clear chat, memories, daily reports, and demo data from the in-app Setti
 
 ## Contact
 
-Support URL and contact details should be provided by the developer account owner before publication.
+For support, bug reports, and privacy questions, use the PersonaOS support page published from `docs/support.html`.
