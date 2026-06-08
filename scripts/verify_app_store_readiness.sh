@@ -27,6 +27,7 @@ Static checks run by default:
   - Project uses the production bundle identifiers.
   - App target is iPhone portrait only.
   - App target declares no non-exempt encryption.
+  - App target does not declare protected permissions, background modes, or entitlements.
   - Staged changes do not include local signing team IDs.
   - Source does not contain likely real OpenAI API keys.
 
@@ -71,6 +72,18 @@ require_grep() {
     pass "$label"
   else
     fail "$label"
+  fi
+}
+
+require_absent_grep() {
+  local pattern="$1"
+  local file="$2"
+  local label="$3"
+
+  if grep -Eq "$pattern" "$file"; then
+    fail "$label"
+  else
+    pass "$label"
   fi
 }
 
@@ -152,6 +165,23 @@ if [[ -f "$PROJECT_FILE" ]]; then
   require_grep 'INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;' "$PROJECT_FILE" "App declares no non-exempt encryption"
   require_grep 'TARGETED_DEVICE_FAMILY = 1;' "$PROJECT_FILE" "App target is iPhone family"
 fi
+
+echo
+echo "== Permissions and capabilities =="
+if [[ -f "$PROJECT_FILE" ]]; then
+  require_absent_grep 'NS(Camera|Microphone|Contacts|Calendars|Health|PhotoLibrary|PhotoLibraryAdd|UserTracking)UsageDescription' "$PROJECT_FILE" "Project declares no unused protected permission usage strings"
+  require_absent_grep 'NSLocation(WhenInUse|Always|AlwaysAndWhenInUse|UsageDescription)' "$PROJECT_FILE" "Project declares no location usage strings"
+  require_absent_grep 'UIBackgroundModes' "$PROJECT_FILE" "Project declares no background modes"
+  require_absent_grep 'CODE_SIGN_ENTITLEMENTS|SystemCapabilities|aps-environment|com\.apple\.developer\.healthkit' "$PROJECT_FILE" "Project declares no extra entitlements or capabilities"
+fi
+
+if git grep -nE 'NS(Camera|Microphone|Contacts|Calendars|Health|PhotoLibrary|PhotoLibraryAdd|UserTracking)UsageDescription|NSLocation(WhenInUse|Always|AlwaysAndWhenInUse|UsageDescription)|UIBackgroundModes|CODE_SIGN_ENTITLEMENTS|SystemCapabilities|aps-environment|com\.apple\.developer\.healthkit' -- PersonaOS PersonaOS.xcodeproj >/tmp/personaos-permission-scan.txt 2>/dev/null; then
+  cat /tmp/personaos-permission-scan.txt >&2
+  fail "Tracked app source declares protected permissions, background modes, or entitlements"
+else
+  pass "Tracked app source declares no protected permissions, background modes, or entitlements"
+fi
+rm -f /tmp/personaos-permission-scan.txt
 
 echo
 echo "== Repository safety =="

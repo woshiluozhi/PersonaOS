@@ -14,6 +14,8 @@ PersonaOS is local-first by default. Local SwiftData records stay on device unle
 
 PersonaOS does not include advertising SDKs, analytics SDKs, data broker integrations, social login SDKs, third-party tracking SDKs, Contacts access, Calendar access, Health access, location access, microphone access, camera access, or background collection.
 
+The repository readiness gate checks that the Xcode project and tracked app source do not declare protected permission usage strings, background modes, push/Health capabilities, or custom entitlements.
+
 ## Data Types to Disclose
 
 ### Name
