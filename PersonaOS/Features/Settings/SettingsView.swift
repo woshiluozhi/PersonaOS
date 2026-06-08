@@ -226,6 +226,18 @@ struct SettingsView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 }
+
+                Section("隐私与审核") {
+                    LabeledContent("版本", value: appVersionText)
+                    LabeledContent("Bundle ID", value: bundleIdentifierText)
+                    LabeledContent("设备方向", value: "iPhone 竖屏")
+                    Text("PersonaOS 不包含广告追踪。真实 AI 模式仅在用户主动保存 OpenAI API Key 后启用；无 Key 时保持本地模式。")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Text("支持与隐私政策 URL 需在 App Store Connect 中配置，草案见仓库内 APP_STORE_METADATA.md 与 PRIVACY_POLICY_DRAFT.md。")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
             .navigationTitle("设置")
             .toolbar {
@@ -277,6 +289,25 @@ struct SettingsView: View {
 
     private var cleanedAPIKeyInput: String {
         apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var appVersionText: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+        switch (version, build) {
+        case let (version?, build?):
+            return "\(version) (\(build))"
+        case let (version?, nil):
+            return version
+        case let (nil, build?):
+            return build
+        default:
+            return "未知"
+        }
+    }
+
+    private var bundleIdentifierText: String {
+        Bundle.main.bundleIdentifier ?? "未知"
     }
 
     private func normalizeEditableProfiles() {

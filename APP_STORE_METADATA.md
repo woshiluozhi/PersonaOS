@@ -45,6 +45,7 @@ The assistant can suggest memories and tasks, but users must explicitly tap to s
 
 ## Screenshot Checklist
 
+- Use portrait iPhone screenshots.
 - Home dashboard with Today Action visible
 - Quest/task list with main and daily tasks
 - Chat screen showing local mode or real AI mode response

@@ -12,6 +12,8 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Production-style bundle identifier: app target uses `com.woshiluozhi.personaos`; test target uses `com.woshiluozhi.personaos.tests`.
 - Draft App Store metadata: present in `APP_STORE_METADATA.md`.
 - Draft privacy policy: present in `PRIVACY_POLICY_DRAFT.md`.
+- iPhone orientation: restricted to portrait to match the verified UI.
+- In-app review/privacy cues: Settings shows version, bundle identifier, portrait-only status, AI mode boundary, and support/privacy policy reminder.
 - Build verification: latest App Store readiness work passes `xcodebuild -scheme PersonaOS -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath ./DerivedData build-for-testing`.
 
 ## Remaining Before Submission
@@ -24,6 +26,7 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - App privacy answers: disclose user-provided name/content and OpenAI processing accurately in App Store Connect.
 - Export compliance: answer App Store Connect encryption/export questions for HTTPS/TLS and Keychain usage.
 - Production QA: test the archive on real devices, including no-key local mode, invalid-key fallback, real-key AI mode, offline behavior, and destructive data actions.
+- Screenshots: capture portrait iPhone screenshots for Dashboard, Tasks, Chat, Memory, Daily Review, and Settings.
 
 ## Recommended Product Metadata Draft
 
