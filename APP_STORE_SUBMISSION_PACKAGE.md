@@ -26,6 +26,7 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | Privacy answers | `APP_STORE_PRIVACY_ANSWERS.md` | Drafted, needs account-owner review |
 | Age rating | `APP_STORE_AGE_RATING.md` | Drafted, needs live questionnaire confirmation |
 | Screenshots | `APP_STORE_SCREENSHOTS.md`, `scripts/capture_app_store_screenshot.sh`, `scripts/validate_app_store_screenshots.sh` | Plan ready, final images still need capture |
+| Real-device QA | `APP_STORE_REAL_DEVICE_QA.md` | Matrix ready, final pass still needs execution |
 | Engineering gate | `scripts/verify_app_store_readiness.sh --with-build --with-tests` | Run before archive |
 
 ## App Store Connect Values
@@ -92,16 +93,8 @@ scripts/verify_app_store_readiness.sh --with-screenshots
 
 Then manually test on a real iPhone:
 
-- First launch and demo data.
-- No-key local chat mode.
-- Invalid-key fallback to local mode.
-- Real-key AI chat mode with a non-sensitive test message.
-- Offline chat fallback.
-- Candidate memory save flow.
-- Suggested task save flow.
-- Local JSON export.
-- Clear chat, memories, daily reviews, ignored memories, and demo reset.
-- Settings page with no visible API Key.
+- Run the complete matrix in `APP_STORE_REAL_DEVICE_QA.md`.
+- Keep QA notes free of real OpenAI API Keys and private user content.
 
 ## Submission Steps
 
@@ -130,4 +123,4 @@ Do not submit if any of these are true:
 - Age rating has not been confirmed in App Store Connect.
 - Required screenshots have not passed `scripts/validate_app_store_screenshots.sh`.
 - Screenshots contain private data or clipped/overlapping UI.
-- Real-device QA has not covered local mode, real AI mode, invalid key fallback, and offline fallback.
+- Real-device QA has not covered the matrix in `APP_STORE_REAL_DEVICE_QA.md`.

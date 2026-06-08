@@ -58,6 +58,8 @@ See `APP_STORE_READINESS.md` for the current submission checklist, completed eng
 
 After capturing App Store screenshots, run `scripts/verify_app_store_readiness.sh --with-screenshots` to validate the complete required screenshot set before upload.
 
+Before archive/upload, run the real-device QA matrix in `APP_STORE_REAL_DEVICE_QA.md`.
+
 ## Notes
 
 - All app data is local SwiftData.
