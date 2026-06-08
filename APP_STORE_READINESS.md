@@ -21,6 +21,10 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Draft screenshot plan: present in `APP_STORE_SCREENSHOTS.md`; helper script `scripts/capture_app_store_screenshot.sh` captures booted simulator screenshots, and `scripts/validate_app_store_screenshots.sh` validates the complete required screenshot set.
 - Draft submission package: present in `APP_STORE_SUBMISSION_PACKAGE.md`; it maps repo evidence to App Store Connect values, screenshot files, QA, and submission steps.
 - Draft real-device QA matrix: present in `APP_STORE_REAL_DEVICE_QA.md`; it covers local mode, invalid key fallback, real AI mode, offline fallback, export, destructive actions, public pages, screenshots, and signed-build smoke checks.
+- Durable release automation state: present in `automation/`, with default decisions, backlog, risk register, human gates, and App Store checklist for long-running Codex work.
+- Project automation prompts and skill: present in `prompts/` and `.codex/skills/personaos-autopilot/SKILL.md`; `scripts/verify_release_automation.sh` checks this contract.
+- Native macOS App Store route: tracked separately in `MAC_APP_STORE_READINESS.md`. No `PersonaOSMac` target exists yet, so macOS release is a future track rather than completed evidence.
+- Public page deployment workflow template: present in `ci/deploy-pages.workflow.yml`, publishing `docs/` with GitHub Pages Actions after the repository owner installs it under `.github/workflows/` with a credential that has `workflow` scope.
 - Release metadata: app display name is `PersonaOS`, marketing version is `1.0`, build number is `1`, category is Productivity, deployment target is iOS 17.0, and generated launch screen is enabled.
 - iPhone orientation: restricted to portrait to match the verified UI.
 - In-app review/privacy cues: Settings shows version, bundle identifier, portrait-only status, AI mode boundary, support/privacy policy reminder, and tappable Support, Privacy Policy, and Accessibility links.
@@ -31,11 +35,12 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 ## Remaining Before Submission
 
 - Apple Developer Program: enroll/use a paid Apple Developer Program account for App Store distribution.
+- Native macOS target: if the release route is Mac App Store first, add and verify a separate `PersonaOSMac` target, macOS metadata, App Sandbox entitlements, screenshots, archive/export, and upload/handoff scripts before claiming macOS readiness.
 - Bundle identifier: confirm `com.woshiluozhi.personaos` is registered and owned in the Apple Developer account.
 - Signing: configure the App Store distribution team/profile in Xcode or CI.
 - App Store Connect: create the app record, upload screenshots, description, keywords, support URL, and category metadata.
 - Submission package: follow `APP_STORE_SUBMISSION_PACKAGE.md` while creating the app record, entering metadata, running QA, and submitting for review.
-- Public pages: publish `docs/support.html`, `docs/privacy.html`, and `docs/accessibility.html` with GitHub Pages or another static host, run `scripts/verify_app_store_readiness.sh --with-public-pages`, then enter the final URLs in App Store Connect.
+- Public pages: enable GitHub Pages with the included GitHub Actions workflow or publish `docs/support.html`, `docs/privacy.html`, and `docs/accessibility.html` with another static host, run `scripts/verify_app_store_readiness.sh --with-public-pages`, then enter the final URLs in App Store Connect.
 - Privacy policy: review `docs/privacy.html` and `PRIVACY_POLICY_DRAFT.md`, then enter the final public Privacy Policy URL in App Store Connect.
 - App privacy answers: review `APP_STORE_PRIVACY_ANSWERS.md`, then disclose user-provided name/content and OpenAI processing accurately in App Store Connect.
 - Age rating: review `APP_STORE_AGE_RATING.md`, answer the live App Store Connect questionnaire, and confirm the calculated rating before submission.

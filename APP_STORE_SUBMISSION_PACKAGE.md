@@ -24,6 +24,7 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | Metadata draft | `APP_STORE_METADATA.md` | Drafted |
 | Privacy policy draft | `PRIVACY_POLICY_DRAFT.md` | Drafted, needs public URL |
 | Public support/privacy pages | `docs/support.html`, `docs/privacy.html`, `APP_STORE_PUBLIC_PAGES.md` | Drafted, needs GitHub Pages or static hosting |
+| Public page deployment | `ci/deploy-pages.workflow.yml`, `ci/README.md` | Template ready, owner must install active workflow with a credential that has `workflow` scope |
 | In-app public links | `PersonaOS/Features/Settings/SettingsView.swift` | Wired to candidate Support, Privacy Policy, and Accessibility URLs |
 | Real AI interaction handoff | `REAL_AI_INTERACTION.md` | Documented, needs real-key and offline smoke on final build |
 | Accessibility labels | `APP_STORE_ACCESSIBILITY.md`, `docs/accessibility.html` | Drafted, needs real-device audit before claims |
@@ -32,6 +33,8 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | Screenshots | `APP_STORE_SCREENSHOTS.md`, `scripts/capture_app_store_screenshot.sh`, `scripts/validate_app_store_screenshots.sh` | Plan ready, final images still need capture |
 | Real-device QA | `APP_STORE_REAL_DEVICE_QA.md` | Matrix ready, final pass still needs execution |
 | Engineering gate | `scripts/verify_app_store_readiness.sh --with-build --with-tests` | Run before archive |
+| Release automation gate | `scripts/verify_release_automation.sh`, `automation/`, `prompts/`, `.codex/skills/personaos-autopilot/SKILL.md` | Ready for long-running Codex handoff |
+| Native Mac App Store track | `MAC_APP_STORE_READINESS.md` | Planned, not ready until `PersonaOSMac` exists and passes macOS gates |
 
 ## App Store Connect Values
 
@@ -114,7 +117,7 @@ Then manually test on a real iPhone:
 3. Configure App Store distribution signing in Xcode or CI.
 4. Create the App Store Connect app record.
 5. Enter metadata from `APP_STORE_METADATA.md`.
-6. Publish `docs/support.html`, `docs/privacy.html`, and `docs/accessibility.html` with GitHub Pages or another HTTPS host.
+6. Publish `docs/support.html`, `docs/privacy.html`, and `docs/accessibility.html` with the GitHub Pages Actions workflow or another HTTPS host.
 7. Run `scripts/verify_app_store_readiness.sh --with-public-pages`.
 8. Enter the final Support URL and Privacy Policy URL.
 9. Enter App Privacy answers from `APP_STORE_PRIVACY_ANSWERS.md`.

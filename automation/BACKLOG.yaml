@@ -1,0 +1,67 @@
+items:
+  - id: AUTO-001
+    title: Initialize durable automation state and prompt layer
+    status: completed
+    type: automation
+    acceptance:
+      - automation status files exist and describe current evidence
+      - prompts and project skill exist
+      - verification script checks the automation contract
+  - id: PAGES-001
+    title: Publish static support/privacy/accessibility pages with GitHub Actions
+    status: waiting_on_owner
+    type: public_pages
+    acceptance:
+      - docs pages are packaged by a GitHub Pages workflow template
+      - readiness gate checks the workflow template exists
+      - public URLs pass --with-public-pages after repository Pages is enabled
+    owner_gate:
+      - install ci/deploy-pages.workflow.yml as .github/workflows/deploy-pages.yml with a credential that has workflow scope
+      - enable repository Pages source for GitHub Actions, or configure an equivalent public static host
+  - id: MAC-001
+    title: Plan native macOS target and shared-core boundaries
+    status: next
+    type: implementation
+    acceptance:
+      - shared model/service files are identified
+      - macOS-only UI and entitlement files are listed
+      - iOS target remains buildable
+  - id: MAC-002
+    title: Add PersonaOSMac target skeleton
+    status: pending
+    type: implementation
+    dependencies:
+      - MAC-001
+    acceptance:
+      - PersonaOSMac scheme exists
+      - Debug build works on platform=macOS
+      - iOS readiness gate still passes
+  - id: MAC-003
+    title: Add macOS App Store sandbox and readiness gate
+    status: pending
+    type: packaging
+    dependencies:
+      - MAC-002
+    acceptance:
+      - macOS entitlements are allowlisted
+      - archive/export scripts exist
+      - missing signing credentials are reported as owner handoff, not source failure
+  - id: MAC-004
+    title: Create macOS screenshots and metadata package
+    status: pending
+    type: metadata
+    dependencies:
+      - MAC-002
+    acceptance:
+      - macOS screenshot plan exists
+      - macOS review notes exist
+      - privacy and age-rating owner gates are updated
+  - id: QA-001
+    title: Add macOS UI smoke test plan
+    status: pending
+    type: ui_test
+    dependencies:
+      - MAC-002
+    acceptance:
+      - first-launch smoke path is automated or documented
+      - local chat, data export, and destructive confirmations are covered

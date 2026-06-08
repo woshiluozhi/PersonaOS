@@ -4,7 +4,7 @@ This document tracks the public web pages needed by App Store Connect for Person
 
 ## Candidate URLs
 
-If GitHub Pages is enabled for the `main` branch and `/docs` folder, use:
+If GitHub Pages is enabled for this repository, use:
 
 - Support URL: `https://woshiluozhi.github.io/PersonaOS/support.html`
 - Privacy Policy URL: `https://woshiluozhi.github.io/PersonaOS/privacy.html`
@@ -46,17 +46,20 @@ Accessibility Nutrition Labels are voluntary at the time of this draft, but App 
 
 ## GitHub Pages Setup
 
-The repository owner can publish the pages by enabling GitHub Pages in repository settings:
+The repository now includes `ci/deploy-pages.workflow.yml`, a GitHub Pages Actions template that packages the `docs/` folder. The active `.github/workflows/deploy-pages.yml` file still needs to be installed by the repository owner using a GitHub credential with `workflow` scope. The Actions path is preferred because it is explicit and repeatable:
 
 1. Open the GitHub repository settings.
 2. Go to Pages.
-3. Set Source to deploy from a branch.
-4. Select branch `main` and folder `/docs`.
-5. Save and wait for GitHub Pages to publish.
-6. Open both candidate URLs and confirm they load over HTTPS.
-7. Open the candidate Accessibility URL if completing Accessibility Nutrition Labels.
-8. Run `scripts/verify_app_store_readiness.sh --with-public-pages` and confirm all public page checks pass.
-9. Enter the final URLs in App Store Connect.
+3. Set Source to GitHub Actions.
+4. Copy `ci/deploy-pages.workflow.yml` to `.github/workflows/deploy-pages.yml` using GitHub web UI, `gh`, or another Git client with `workflow` scope.
+5. Push to `main` or run the `Deploy GitHub Pages` workflow manually.
+6. Wait for the workflow to complete.
+7. Open the candidate URLs and confirm they load over HTTPS.
+8. Open the candidate Accessibility URL if completing Accessibility Nutrition Labels.
+9. Run `scripts/verify_app_store_readiness.sh --with-public-pages` and confirm all public page checks pass.
+10. Enter the final URLs in App Store Connect.
+
+If branch-based Pages is used instead, set Source to deploy from branch `main` and folder `/docs`, then run the same public-page verification gate.
 
 ## Verification Command
 
@@ -75,6 +78,7 @@ Do not submit the app if:
 - Either final URL does not load publicly over HTTPS.
 - `scripts/verify_app_store_readiness.sh --with-public-pages` fails after the final public host is configured.
 - In-app Support, Privacy Policy, or Accessibility links point to a host that has not been published.
+- `ci/deploy-pages.workflow.yml` is removed without replacing it with an equivalent documented public-page deployment path.
 - The support page lacks a usable support contact path.
 - The privacy page does not match the submitted app's actual data behavior.
 - The support or privacy page contains real API keys, private task data, private memories, or placeholder contact instructions.

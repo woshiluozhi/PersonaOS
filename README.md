@@ -22,6 +22,12 @@ First launch seeds local demo data, including yesterday's sample report so today
 
 ## Verify
 
+Run the release automation contract gate:
+
+```sh
+scripts/verify_release_automation.sh
+```
+
 Run the App Store readiness static gate:
 
 ```sh
@@ -55,6 +61,8 @@ Recent successful logs are recorded in `CODEX_REPORT.md`. Full XCTest execution 
 ## App Store Readiness
 
 See `APP_STORE_READINESS.md` for the current submission checklist, completed engineering items, and remaining account/legal/App Store Connect tasks. Draft submission copy lives in `APP_STORE_METADATA.md`, App Store privacy answers live in `APP_STORE_PRIVACY_ANSWERS.md`, age rating answers live in `APP_STORE_AGE_RATING.md`, accessibility planning lives in `APP_STORE_ACCESSIBILITY.md`, screenshot planning lives in `APP_STORE_SCREENSHOTS.md`, public support/privacy page planning lives in `APP_STORE_PUBLIC_PAGES.md`, the App Store Connect handoff checklist lives in `APP_STORE_SUBMISSION_PACKAGE.md`, and a publishable privacy policy draft lives in `PRIVACY_POLICY_DRAFT.md`.
+
+The durable release automation state lives in `automation/`, task prompts live in `prompts/`, and the project-local Codex skill lives in `.codex/skills/personaos-autopilot/SKILL.md`. `MAC_APP_STORE_READINESS.md` tracks the planned native macOS App Store route; the current app is still an iOS SwiftUI MVP until a `PersonaOSMac` target is added and verified. `ci/deploy-pages.workflow.yml` is a GitHub Pages workflow template; activating it under `.github/workflows/` requires a GitHub credential with `workflow` scope.
 
 After capturing App Store screenshots, run `scripts/verify_app_store_readiness.sh --with-screenshots` to validate the complete required screenshot set before upload.
 

@@ -1,0 +1,32 @@
+product_target: macos_native
+secondary_target: ios_optional
+keep_existing_ios_target: true
+shared_core_strategy: extract_core_first
+monetization_default: paid_upfront
+monetization_optional:
+  - non_consumable_unlock
+  - auto_renewable_subscription
+real_ai_default: optional_byo_openai_key
+local_mode_must_always_work: true
+third_party_sdks: disallow_by_default
+analytics: none
+ads: none
+tracking: none
+cloud_sync: false
+public_site_host: github_pages
+store_submission_default: mac_app_store
+app_store_upload_route: xcode_or_transporter
+supported_locales:
+  - zh-Hans
+  - en-US
+rename_potential_ip_references: true
+default_companion_release_name: Guide
+human_gate_topics:
+  - brand_or_ip_rights
+  - seller_entity_tax_banking
+  - eu_trader_status
+  - final_price
+  - final_age_rating_answers
+  - final_privacy_policy_wording
+  - external_purchase_policy
+  - signing_and_asc_credentials

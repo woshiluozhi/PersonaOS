@@ -30,6 +30,7 @@ Usage: scripts/verify_app_store_readiness.sh [--with-build] [--with-tests] [--wi
 
 Static checks run by default:
   - Required App Store docs exist.
+  - Release automation state, prompts, and project skill exist.
   - App Store submission package exists.
   - Public support/privacy page drafts exist.
   - App icon is a 1024 x 1024 PNG without alpha.
@@ -162,13 +163,26 @@ require_file "APP_STORE_REAL_DEVICE_QA.md"
 require_file "PRIVACY_POLICY_DRAFT.md"
 require_file "APP_STORE_SCREENSHOTS.md"
 require_file "APP_STORE_SUBMISSION_PACKAGE.md"
+require_file "MAC_APP_STORE_READINESS.md"
+require_file "automation/STATUS.md"
+require_file "automation/BACKLOG.yaml"
+require_file "automation/DECISIONS.yaml"
+require_file "automation/RUN_LOG.md"
+require_file "automation/RISK_REGISTER.md"
+require_file "automation/HUMAN_GATES.md"
+require_file "automation/APPSTORE_CHECKLIST.md"
+require_file "prompts/MASTER_PROMPT.md"
+require_file ".codex/skills/personaos-autopilot/SKILL.md"
 require_file "REAL_AI_INTERACTION.md"
 require_file "docs/index.html"
 require_file "docs/accessibility.html"
 require_file "docs/privacy.html"
 require_file "docs/support.html"
+require_file "ci/deploy-pages.workflow.yml"
+require_file "ci/README.md"
 require_file "scripts/capture_app_store_screenshot.sh"
 require_file "scripts/validate_app_store_screenshots.sh"
+require_file "scripts/verify_release_automation.sh"
 require_file "$PROJECT_FILE"
 require_file "$PRIVACY_MANIFEST"
 require_file "$APP_ICON_CONTENTS"
@@ -283,6 +297,16 @@ fi
 rm -f /tmp/personaos-secret-scan.txt
 
 echo
+echo "== Release automation =="
+if scripts/verify_release_automation.sh >/tmp/personaos-release-automation.txt 2>&1; then
+  pass "Release automation contract passed"
+else
+  cat /tmp/personaos-release-automation.txt >&2
+  fail "Release automation contract failed"
+fi
+rm -f /tmp/personaos-release-automation.txt
+
+echo
 echo "== App Store docs =="
 require_grep 'Support URL: to be provided by the account owner' "APP_STORE_READINESS.md" "Readiness doc calls out missing Support URL"
 require_grep 'Privacy Policy URL: to be provided by the account owner' "APP_STORE_READINESS.md" "Readiness doc calls out missing Privacy Policy URL"
@@ -309,6 +333,13 @@ require_grep 'https://woshiluozhi\.github\.io/PersonaOS/support\.html' "APP_STOR
 require_grep 'https://woshiluozhi\.github\.io/PersonaOS/privacy\.html' "APP_STORE_PUBLIC_PAGES.md" "Public pages doc includes candidate Privacy Policy URL"
 require_grep 'https://woshiluozhi\.github\.io/PersonaOS/accessibility\.html' "APP_STORE_PUBLIC_PAGES.md" "Public pages doc includes candidate Accessibility URL"
 require_grep 'scripts/verify_app_store_readiness\.sh --with-public-pages' "APP_STORE_PUBLIC_PAGES.md" "Public pages doc includes public-page verification gate"
+require_grep 'GitHub Actions' "APP_STORE_PUBLIC_PAGES.md" "Public pages doc covers GitHub Actions deployment"
+require_grep 'actions/deploy-pages@v4' "ci/deploy-pages.workflow.yml" "GitHub Pages workflow template deploys Pages"
+require_grep 'path: docs' "ci/deploy-pages.workflow.yml" "GitHub Pages workflow template deploys docs folder"
+require_grep 'workflow scope' "ci/README.md" "CI handoff records active workflow credential gate"
+require_grep 'product_target: macos_native' "automation/DECISIONS.yaml" "Automation decisions default to macOS native"
+require_grep 'not_release_done' "automation/STATUS.md" "Automation status does not claim release done"
+require_grep 'PersonaOSMac.*not present yet' "MAC_APP_STORE_READINESS.md" "Mac readiness records target gap"
 require_grep 'No-key local chat mode' "APP_STORE_REAL_DEVICE_QA.md" "Real-device QA covers no-key local mode"
 require_grep 'Invalid-key fallback' "APP_STORE_REAL_DEVICE_QA.md" "Real-device QA covers invalid-key fallback"
 require_grep 'Real-key AI chat mode' "APP_STORE_REAL_DEVICE_QA.md" "Real-device QA covers real-key AI mode"
