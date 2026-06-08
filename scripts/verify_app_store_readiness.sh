@@ -26,6 +26,7 @@ Static checks run by default:
   - Privacy manifest is valid and declares no tracking.
   - Project uses the production bundle identifiers.
   - App target is iPhone portrait only.
+  - App target declares no non-exempt encryption.
   - Staged changes do not include local signing team IDs.
   - Source does not contain likely real OpenAI API keys.
 
@@ -90,6 +91,7 @@ echo "== Required files =="
 require_file "README.md"
 require_file "APP_STORE_READINESS.md"
 require_file "APP_STORE_METADATA.md"
+require_file "APP_STORE_PRIVACY_ANSWERS.md"
 require_file "PRIVACY_POLICY_DRAFT.md"
 require_file "$PROJECT_FILE"
 require_file "$PRIVACY_MANIFEST"
@@ -147,6 +149,7 @@ if [[ -f "$PROJECT_FILE" ]]; then
   require_grep 'ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;' "$PROJECT_FILE" "App icon asset is wired to target"
   require_grep 'PrivacyInfo\.xcprivacy' "$PROJECT_FILE" "Privacy manifest is wired to target"
   require_grep 'INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;' "$PROJECT_FILE" "iPhone orientation is portrait"
+  require_grep 'INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;' "$PROJECT_FILE" "App declares no non-exempt encryption"
   require_grep 'TARGETED_DEVICE_FAMILY = 1;' "$PROJECT_FILE" "App target is iPhone family"
 fi
 
@@ -181,6 +184,9 @@ require_grep 'Support URL: to be provided by the account owner' "APP_STORE_READI
 require_grep 'Privacy Policy URL: to be provided by the account owner' "APP_STORE_READINESS.md" "Readiness doc calls out missing Privacy Policy URL"
 require_grep 'OpenAI API Key' "APP_STORE_METADATA.md" "Metadata draft explains OpenAI API Key flow"
 require_grep 'does not read other apps' "APP_STORE_METADATA.md" "Metadata draft explains privacy boundary"
+require_grep 'Data type: Contact Info -> Name' "APP_STORE_PRIVACY_ANSWERS.md" "Privacy answers draft covers Name"
+require_grep 'Data type: User Content -> Other User Content' "APP_STORE_PRIVACY_ANSWERS.md" "Privacy answers draft covers Other User Content"
+require_grep 'Uses non-exempt encryption: No' "APP_STORE_PRIVACY_ANSWERS.md" "Privacy answers draft covers export compliance"
 require_grep 'Data Sent to OpenAI' "PRIVACY_POLICY_DRAFT.md" "Privacy policy draft explains OpenAI data sharing"
 
 if [[ "$WITH_TESTS" == "1" ]]; then

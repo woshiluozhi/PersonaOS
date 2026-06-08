@@ -8,14 +8,16 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Asset catalog: present and wired into the app target.
 - Privacy manifest: present at `PersonaOS/Resources/PrivacyInfo.xcprivacy` and wired into the app target resources.
 - Privacy manifest declarations: no tracking; name and user-generated content are declared for app functionality and product personalization.
+- Export compliance: generated Info.plist declares `ITSAppUsesNonExemptEncryption = NO`; PersonaOS uses only Apple operating-system encryption through HTTPS/URLSession and Keychain.
 - AI mode: OpenAI API Key is saved only in iOS Keychain; chat sends bounded essential context through the Responses API, parses structured JSON output, and falls back to local mode.
 - Production-style bundle identifier: app target uses `com.woshiluozhi.personaos`; test target uses `com.woshiluozhi.personaos.tests`.
 - Draft App Store metadata: present in `APP_STORE_METADATA.md`.
 - Draft privacy policy: present in `PRIVACY_POLICY_DRAFT.md`.
+- Draft App Store privacy answers: present in `APP_STORE_PRIVACY_ANSWERS.md`.
 - iPhone orientation: restricted to portrait to match the verified UI.
 - In-app review/privacy cues: Settings shows version, bundle identifier, portrait-only status, AI mode boundary, and support/privacy policy reminder.
 - Local data controls: Settings can export local SwiftData content as JSON and can clear chat, memories, reports, ignored memories, or reset demo data. The export excludes the OpenAI API Key stored in Keychain.
-- Automated readiness gate: `scripts/verify_app_store_readiness.sh` checks required docs, App Icon size/alpha, privacy manifest, bundle identifiers, iPhone portrait configuration, staged local signing IDs, and likely real OpenAI API keys.
+- Automated readiness gate: `scripts/verify_app_store_readiness.sh` checks required docs, App Icon size/alpha, privacy manifest, bundle identifiers, iPhone portrait configuration, export compliance Info.plist key, staged local signing IDs, and likely real OpenAI API keys.
 - Build verification: latest App Store readiness work passes 159 unit tests, `xcodebuild -scheme PersonaOS -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath ./DerivedData build-for-testing`, and Release generic iOS build with `CODE_SIGNING_ALLOWED=NO`.
 
 ## Remaining Before Submission
@@ -25,8 +27,8 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Signing: configure the App Store distribution team/profile in Xcode or CI.
 - App Store Connect: create the app record, upload screenshots, description, keywords, support URL, and category metadata.
 - Privacy policy: publish the draft privacy policy in `PRIVACY_POLICY_DRAFT.md`, then enter its URL in App Store Connect.
-- App privacy answers: disclose user-provided name/content and OpenAI processing accurately in App Store Connect.
-- Export compliance: answer App Store Connect encryption/export questions for HTTPS/TLS and Keychain usage.
+- App privacy answers: review `APP_STORE_PRIVACY_ANSWERS.md`, then disclose user-provided name/content and OpenAI processing accurately in App Store Connect.
+- Export compliance: confirm `ITSAppUsesNonExemptEncryption = NO` remains accurate for the final build and answer App Store Connect encryption/export questions for HTTPS/TLS and Keychain usage.
 - Production QA: test the archive on real devices, including no-key local mode, invalid-key fallback, real-key AI mode, offline behavior, and destructive data actions.
 - Screenshots: capture portrait iPhone screenshots for Dashboard, Tasks, Chat, Memory, Daily Review, and Settings.
 - Final engineering gate: run `scripts/verify_app_store_readiness.sh --with-build` immediately before archive/upload.
