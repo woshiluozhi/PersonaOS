@@ -127,7 +127,7 @@ final class OpenAIClientTests: XCTestCase {
 
     func testFallbackClientUsesLocalModeWhenPrimaryFails() async throws {
         let client = FallbackAIClient(
-            primary: ThrowingAIClient(),
+            primary: ThrowingAIClient(error: OpenAIClientError.httpStatus(401)),
             fallback: StaticAIClient(response: AIResponse(
                 assistantMessage: "先完成今日任务。",
                 suggestedMemories: [],
@@ -141,6 +141,50 @@ final class OpenAIClientTests: XCTestCase {
         XCTAssertTrue(response.assistantMessage.contains("本地模式"))
         XCTAssertTrue(response.assistantMessage.contains("先完成今日任务"))
         XCTAssertEqual(response.suggestedTasks, ["完成今日任务"])
+    }
+
+    func testFallbackClientUsesLocalModeWhenNetworkFails() async throws {
+        let client = FallbackAIClient(
+            primary: ThrowingAIClient(error: URLError(.notConnectedToInternet)),
+            fallback: StaticAIClient(response: AIResponse(
+                assistantMessage: "先离线整理一个动作。",
+                suggestedMemories: [],
+                suggestedTasks: ["离线整理下一步"],
+                riskFlags: ["network_unavailable"]
+            ))
+        )
+
+        let response = try await client.sendMessage(userMessage: "检查风险", context: minimalContext())
+
+        XCTAssertTrue(response.assistantMessage.contains("本地模式"))
+        XCTAssertTrue(response.assistantMessage.contains("真实 AI 暂不可用"))
+        XCTAssertTrue(response.assistantMessage.contains("先离线整理一个动作"))
+        XCTAssertEqual(response.suggestedTasks, ["离线整理下一步"])
+        XCTAssertEqual(response.riskFlags, ["network_unavailable"])
+    }
+
+    func testFallbackClientUsesLocalModeWhenParsingFails() async throws {
+        let decodingError = DecodingError.dataCorrupted(
+            DecodingError.Context(
+                codingPath: [],
+                debugDescription: "Invalid structured AI response"
+            )
+        )
+        let client = FallbackAIClient(
+            primary: ThrowingAIClient(error: decodingError),
+            fallback: StaticAIClient(response: AIResponse(
+                assistantMessage: "先回到本地判断。",
+                suggestedMemories: ["用户需要稳定回退"],
+                suggestedTasks: [],
+                riskFlags: []
+            ))
+        )
+
+        let response = try await client.sendMessage(userMessage: "总结今天", context: minimalContext())
+
+        XCTAssertTrue(response.assistantMessage.contains("本地模式"))
+        XCTAssertTrue(response.assistantMessage.contains("先回到本地判断"))
+        XCTAssertEqual(response.suggestedMemories, ["用户需要稳定回退"])
     }
 
     func testFactoryFallsBackWhenNoAPIKeyExists() async throws {
@@ -177,8 +221,10 @@ final class OpenAIClientTests: XCTestCase {
 }
 
 private struct ThrowingAIClient: AIClientProtocol {
+    let error: Error
+
     func sendMessage(userMessage: String, context: AIRequestContext) async throws -> AIResponse {
-        throw OpenAIClientError.httpStatus(401)
+        throw error
     }
 }
 

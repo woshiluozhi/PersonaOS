@@ -22,6 +22,7 @@ Usage: scripts/verify_app_store_readiness.sh [--with-build] [--with-tests]
 
 Static checks run by default:
   - Required App Store docs exist.
+  - App Store submission package exists.
   - App icon is a 1024 x 1024 PNG without alpha.
   - Privacy manifest is valid and declares no tracking.
   - Project uses the production bundle identifiers.
@@ -29,6 +30,7 @@ Static checks run by default:
   - App target is iPhone portrait only.
   - App target declares no non-exempt encryption.
   - App target does not declare protected permissions, background modes, or entitlements.
+  - Screenshot plan and capture helper exist.
   - Staged changes do not include local signing team IDs.
   - Source does not contain likely real OpenAI API keys.
 
@@ -114,6 +116,9 @@ require_file "APP_STORE_READINESS.md"
 require_file "APP_STORE_METADATA.md"
 require_file "APP_STORE_PRIVACY_ANSWERS.md"
 require_file "PRIVACY_POLICY_DRAFT.md"
+require_file "APP_STORE_SCREENSHOTS.md"
+require_file "APP_STORE_SUBMISSION_PACKAGE.md"
+require_file "scripts/capture_app_store_screenshot.sh"
 require_file "$PROJECT_FILE"
 require_file "$PRIVACY_MANIFEST"
 require_file "$APP_ICON_CONTENTS"
@@ -124,6 +129,7 @@ echo "== Tooling =="
 require_command plutil
 require_command sips
 require_command git
+require_command xcrun
 
 echo
 echo "== App icon =="
@@ -232,6 +238,19 @@ require_grep 'Data type: Contact Info -> Name' "APP_STORE_PRIVACY_ANSWERS.md" "P
 require_grep 'Data type: User Content -> Other User Content' "APP_STORE_PRIVACY_ANSWERS.md" "Privacy answers draft covers Other User Content"
 require_grep 'Uses non-exempt encryption: No' "APP_STORE_PRIVACY_ANSWERS.md" "Privacy answers draft covers export compliance"
 require_grep 'Data Sent to OpenAI' "PRIVACY_POLICY_DRAFT.md" "Privacy policy draft explains OpenAI data sharing"
+require_grep '01-home\.png' "APP_STORE_SCREENSHOTS.md" "Screenshot plan covers Home"
+require_grep '06-settings-ai-privacy\.png' "APP_STORE_SCREENSHOTS.md" "Screenshot plan covers Settings privacy"
+require_grep 'developer\.apple\.com/help/app-store-connect/reference/app-information/screenshot-specifications' "APP_STORE_SCREENSHOTS.md" "Screenshot plan links Apple screenshot specifications"
+require_grep 'scripts/verify_app_store_readiness\.sh --with-build --with-tests' "APP_STORE_SUBMISSION_PACKAGE.md" "Submission package includes final engineering gate"
+require_grep 'Support URL' "APP_STORE_SUBMISSION_PACKAGE.md" "Submission package calls out Support URL"
+require_grep 'Privacy Policy URL' "APP_STORE_SUBMISSION_PACKAGE.md" "Submission package calls out Privacy Policy URL"
+require_grep 'developer\.apple\.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app' "APP_STORE_SUBMISSION_PACKAGE.md" "Submission package links Apple submit app reference"
+
+if [[ -x "scripts/capture_app_store_screenshot.sh" ]]; then
+  pass "Screenshot capture helper is executable"
+else
+  fail "Screenshot capture helper is not executable"
+fi
 
 if [[ "$WITH_TESTS" == "1" ]]; then
   echo

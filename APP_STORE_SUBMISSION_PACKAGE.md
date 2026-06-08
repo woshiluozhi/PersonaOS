@@ -1,0 +1,120 @@
+# App Store Submission Package
+
+This package turns the repo-ready work into the concrete App Store Connect checklist for PersonaOS 1.0. It is meant for the Apple Developer account owner who will create the app record, configure signing, upload the build, and submit for review.
+
+## Official References
+
+- App information reference: https://developer.apple.com/help/app-store-connect/reference/app-information/
+- App privacy reference: https://developer.apple.com/help/app-store-connect/reference/app-information/app-privacy
+- Manage app privacy: https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy/
+- Screenshot specifications: https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/
+- Upload app previews and screenshots: https://developer.apple.com/help/app-store-connect/manage-app-information/upload-app-previews-and-screenshots
+- Submit an app: https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app/
+
+## Repo Evidence
+
+| Area | Repo evidence | Status |
+| --- | --- | --- |
+| Bundle ID | `com.woshiluozhi.personaos` in `PersonaOS.xcodeproj/project.pbxproj` | Ready, account owner must register it |
+| Version | Marketing version `1.0`, build `1` | Ready |
+| Category | Productivity | Ready |
+| App icon | `PersonaOS-AppIcon-1024.png`, 1024 x 1024, no alpha | Ready |
+| Privacy manifest | `PersonaOS/Resources/PrivacyInfo.xcprivacy` | Ready |
+| Metadata draft | `APP_STORE_METADATA.md` | Drafted |
+| Privacy policy draft | `PRIVACY_POLICY_DRAFT.md` | Drafted, needs public URL |
+| Privacy answers | `APP_STORE_PRIVACY_ANSWERS.md` | Drafted, needs account-owner review |
+| Screenshots | `APP_STORE_SCREENSHOTS.md` and `scripts/capture_app_store_screenshot.sh` | Plan ready, final images still need capture |
+| Engineering gate | `scripts/verify_app_store_readiness.sh --with-build --with-tests` | Run before archive |
+
+## App Store Connect Values
+
+| Field | Value |
+| --- | --- |
+| Name | PersonaOS |
+| Subtitle | Personal mentor for daily focus |
+| Category | Productivity |
+| Bundle ID | `com.woshiluozhi.personaos` |
+| SKU | `personaos-ios-1` or another account-owner controlled identifier |
+| Primary language | English unless the owner prefers Chinese metadata |
+| Content rights | Uses original app UI and first-party app icon artwork |
+| Support URL | Required external URL, not yet provided |
+| Privacy Policy URL | Required external URL after publishing `PRIVACY_POLICY_DRAFT.md` |
+
+## Screenshot Set
+
+Capture a clean iPhone portrait set before submission. Use `APP_STORE_SCREENSHOTS.md` as the source plan.
+
+Expected first set:
+
+1. `01-home.png`
+2. `02-tasks.png`
+3. `03-chat-local.png`
+4. `04-memory.png`
+5. `05-review.png`
+6. `06-settings-ai-privacy.png`
+
+Preferred output location while preparing locally:
+
+```sh
+BuildLogs/AppStoreScreenshots/
+```
+
+Do not include real API keys, real personal memories, private notes, debug overlays, or simulator chrome.
+
+## Privacy And Review Notes
+
+Use `APP_STORE_PRIVACY_ANSWERS.md` for privacy questionnaire answers. The account owner should review the final build and confirm:
+
+- PersonaOS does not track users.
+- PersonaOS does not include ad, analytics, social-login, location, Health, Calendar, camera, microphone, Contacts, push, or background collection permissions.
+- User-provided name and user-generated content are disclosed.
+- OpenAI is used only when the user saves an OpenAI API Key and sends a chat message.
+- API keys are stored in Keychain, excluded from SwiftData export, and not logged.
+
+Use the Review Notes text from `APP_STORE_METADATA.md`. Include that reviewers can test without an OpenAI API Key because local deterministic chat mode is available.
+
+## Pre-Submission QA
+
+Run these before creating the final archive:
+
+```sh
+scripts/verify_app_store_readiness.sh --with-build --with-tests
+```
+
+Then manually test on a real iPhone:
+
+- First launch and demo data.
+- No-key local chat mode.
+- Invalid-key fallback to local mode.
+- Real-key AI chat mode with a non-sensitive test message.
+- Offline chat fallback.
+- Candidate memory save flow.
+- Suggested task save flow.
+- Local JSON export.
+- Clear chat, memories, daily reviews, ignored memories, and demo reset.
+- Settings page with no visible API Key.
+
+## Submission Steps
+
+1. Enroll or use a paid Apple Developer Program account.
+2. Register `com.woshiluozhi.personaos` in Certificates, Identifiers and Profiles.
+3. Configure App Store distribution signing in Xcode or CI.
+4. Create the App Store Connect app record.
+5. Enter metadata from `APP_STORE_METADATA.md`.
+6. Publish the privacy policy and enter the Privacy Policy URL.
+7. Enter App Privacy answers from `APP_STORE_PRIVACY_ANSWERS.md`.
+8. Capture and upload screenshots from the screenshot set above.
+9. Archive and upload the signed build.
+10. Select the uploaded build for PersonaOS 1.0.
+11. Add the app version for review, then submit for review.
+
+## No-Go Conditions
+
+Do not submit if any of these are true:
+
+- The readiness gate fails.
+- A real API Key appears in source, logs, screenshots, or exported JSON.
+- Distribution signing is not configured.
+- Privacy Policy URL or Support URL is missing.
+- Screenshots contain private data or clipped/overlapping UI.
+- Real-device QA has not covered local mode, real AI mode, invalid key fallback, and offline fallback.

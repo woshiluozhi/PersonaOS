@@ -47,6 +47,7 @@ The Settings screen lets reviewers export local SwiftData content as JSON and de
 
 ## Screenshot Checklist
 
+- Use `APP_STORE_SCREENSHOTS.md` as the source checklist.
 - Use portrait iPhone screenshots.
 - Home dashboard with Today Action visible
 - Quest/task list with main and daily tasks
