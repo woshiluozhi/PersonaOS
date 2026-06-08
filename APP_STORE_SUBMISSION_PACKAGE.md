@@ -7,6 +7,7 @@ This package turns the repo-ready work into the concrete App Store Connect check
 - App information reference: https://developer.apple.com/help/app-store-connect/reference/app-information/
 - App privacy reference: https://developer.apple.com/help/app-store-connect/reference/app-information/app-privacy
 - Manage app privacy: https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy/
+- Accessibility Nutrition Labels: https://developer.apple.com/help/app-store-connect/manage-app-accessibility/overview-of-accessibility-nutrition-labels/
 - Screenshot specifications: https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/
 - Upload app previews and screenshots: https://developer.apple.com/help/app-store-connect/manage-app-information/upload-app-previews-and-screenshots
 - Submit an app: https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app/
@@ -23,6 +24,8 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | Metadata draft | `APP_STORE_METADATA.md` | Drafted |
 | Privacy policy draft | `PRIVACY_POLICY_DRAFT.md` | Drafted, needs public URL |
 | Public support/privacy pages | `docs/support.html`, `docs/privacy.html`, `APP_STORE_PUBLIC_PAGES.md` | Drafted, needs GitHub Pages or static hosting |
+| Real AI interaction handoff | `REAL_AI_INTERACTION.md` | Documented, needs real-key and offline smoke on final build |
+| Accessibility labels | `APP_STORE_ACCESSIBILITY.md`, `docs/accessibility.html` | Drafted, needs real-device audit before claims |
 | Privacy answers | `APP_STORE_PRIVACY_ANSWERS.md` | Drafted, needs account-owner review |
 | Age rating | `APP_STORE_AGE_RATING.md` | Drafted, needs live questionnaire confirmation |
 | Screenshots | `APP_STORE_SCREENSHOTS.md`, `scripts/capture_app_store_screenshot.sh`, `scripts/validate_app_store_screenshots.sh` | Plan ready, final images still need capture |
@@ -43,6 +46,7 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | Expected age rating | 4+; not Made for Kids; no higher-rating override |
 | Candidate Support URL | `https://woshiluozhi.github.io/PersonaOS/support.html` after GitHub Pages is enabled |
 | Candidate Privacy Policy URL | `https://woshiluozhi.github.io/PersonaOS/privacy.html` after GitHub Pages is enabled |
+| Candidate Accessibility URL | `https://woshiluozhi.github.io/PersonaOS/accessibility.html` after GitHub Pages is enabled |
 
 ## Screenshot Set
 
@@ -107,10 +111,12 @@ Then manually test on a real iPhone:
 7. Enter the final Support URL and Privacy Policy URL.
 8. Enter App Privacy answers from `APP_STORE_PRIVACY_ANSWERS.md`.
 9. Answer the Age Ratings questionnaire using `APP_STORE_AGE_RATING.md` and confirm the calculated rating.
-10. Capture and upload screenshots from the screenshot set above.
-11. Archive and upload the signed build.
-12. Select the uploaded build for PersonaOS 1.0.
-13. Add the app version for review, then submit for review.
+10. Review `REAL_AI_INTERACTION.md` and verify no-key, invalid-key, real-key, and offline fallback chat on the final build.
+11. Review `APP_STORE_ACCESSIBILITY.md`; publish only Accessibility Nutrition Label claims verified on the final build.
+12. Capture and upload screenshots from the screenshot set above.
+13. Archive and upload the signed build.
+14. Select the uploaded build for PersonaOS 1.0.
+15. Add the app version for review, then submit for review.
 
 ## No-Go Conditions
 
@@ -124,3 +130,4 @@ Do not submit if any of these are true:
 - Required screenshots have not passed `scripts/validate_app_store_screenshots.sh`.
 - Screenshots contain private data or clipped/overlapping UI.
 - Real-device QA has not covered the matrix in `APP_STORE_REAL_DEVICE_QA.md`.
+- Accessibility Nutrition Label claims have not been verified on the final signed build.

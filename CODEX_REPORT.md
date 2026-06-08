@@ -2,7 +2,7 @@
 
 ## 1. 当前状态
 
-PersonaOS 已从空 Git 目录搭建为一个可编译的本地 iOS SwiftUI MVP。项目使用 SwiftData、本地 `MockAIClient`、无网络请求、无 API Key、无第三方依赖、无系统权限接入。
+PersonaOS 已从空 Git 目录搭建为一个可编译的本地 iOS SwiftUI MVP。项目使用 SwiftData、本地 `MockAIClient` 兜底，并支持用户在设置页保存 OpenAI API Key 后启用 Responses API 真实文字对话；API Key 只存入 iOS Keychain。项目无第三方依赖，也不接入通讯录、日历、健康、定位、录音或后台采集权限。
 
 当前主流程已经形成闭环：
 

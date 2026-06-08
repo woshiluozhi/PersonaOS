@@ -14,8 +14,10 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Draft App Store metadata: present in `APP_STORE_METADATA.md`.
 - Draft privacy policy: present in `PRIVACY_POLICY_DRAFT.md`.
 - Draft App Store privacy answers: present in `APP_STORE_PRIVACY_ANSWERS.md`.
+- Real AI interaction handoff: present in `REAL_AI_INTERACTION.md`; it documents the Keychain setup flow, Responses API boundary, bounded context, fallback behavior, and iPhone validation steps.
 - Draft age rating answers: present in `APP_STORE_AGE_RATING.md`; suggested direction is 4+, not Made for Kids, no higher-rating override, with owner review required.
 - Draft public support/privacy pages: present in `docs/support.html` and `docs/privacy.html`; publishing plan is documented in `APP_STORE_PUBLIC_PAGES.md`.
+- Draft accessibility labels: present in `APP_STORE_ACCESSIBILITY.md`; candidate accessibility page is `docs/accessibility.html`, and support claims remain conservative until real-device QA verifies common tasks.
 - Draft screenshot plan: present in `APP_STORE_SCREENSHOTS.md`; helper script `scripts/capture_app_store_screenshot.sh` captures booted simulator screenshots, and `scripts/validate_app_store_screenshots.sh` validates the complete required screenshot set.
 - Draft submission package: present in `APP_STORE_SUBMISSION_PACKAGE.md`; it maps repo evidence to App Store Connect values, screenshot files, QA, and submission steps.
 - Draft real-device QA matrix: present in `APP_STORE_REAL_DEVICE_QA.md`; it covers local mode, invalid key fallback, real AI mode, offline fallback, export, destructive actions, public pages, screenshots, and signed-build smoke checks.
@@ -23,7 +25,7 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - iPhone orientation: restricted to portrait to match the verified UI.
 - In-app review/privacy cues: Settings shows version, bundle identifier, portrait-only status, AI mode boundary, and support/privacy policy reminder.
 - Local data controls: Settings can export local SwiftData content as JSON and can clear chat, memories, reports, ignored memories, or reset demo data. The export excludes the OpenAI API Key stored in Keychain.
-- Automated readiness gate: `scripts/verify_app_store_readiness.sh` checks required docs, real-device QA coverage, submission package, screenshot plan/helper, App Icon size/alpha, privacy manifest, bundle identifiers, release metadata, iPhone portrait configuration, export compliance Info.plist key, absence of protected permissions/background modes/extra entitlements, staged local signing IDs, and likely real OpenAI API keys. With `--with-build`, it also validates built Debug/Release Info.plist metadata. With `--with-screenshots`, it validates the captured screenshot set.
+- Automated readiness gate: `scripts/verify_app_store_readiness.sh` checks required docs, real AI interaction handoff, accessibility draft, real-device QA coverage, submission package, screenshot plan/helper, App Icon size/alpha, privacy manifest, bundle identifiers, release metadata, iPhone portrait configuration, export compliance Info.plist key, absence of protected permissions/background modes/extra entitlements, staged local signing IDs, and likely real OpenAI API keys. With `--with-build`, it also validates built Debug/Release Info.plist metadata. With `--with-screenshots`, it validates the captured screenshot set.
 - Build verification: latest App Store readiness work passes the full simulator test suite, `xcodebuild -scheme PersonaOS -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath ./DerivedData build-for-testing`, and Release generic iOS build with `CODE_SIGNING_ALLOWED=NO`.
 
 ## Remaining Before Submission
@@ -37,6 +39,7 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Privacy policy: review `docs/privacy.html` and `PRIVACY_POLICY_DRAFT.md`, then enter the final public Privacy Policy URL in App Store Connect.
 - App privacy answers: review `APP_STORE_PRIVACY_ANSWERS.md`, then disclose user-provided name/content and OpenAI processing accurately in App Store Connect.
 - Age rating: review `APP_STORE_AGE_RATING.md`, answer the live App Store Connect questionnaire, and confirm the calculated rating before submission.
+- Accessibility: review `APP_STORE_ACCESSIBILITY.md`, complete a real-device accessibility pass before publishing any Accessibility Nutrition Label support claims, and use `docs/accessibility.html` if adding an accessibility URL.
 - Export compliance: confirm `ITSAppUsesNonExemptEncryption = NO` remains accurate for the final build and answer App Store Connect encryption/export questions for HTTPS/TLS and Keychain usage.
 - Production QA: run `APP_STORE_REAL_DEVICE_QA.md` on a real iPhone and, if using TestFlight, repeat smoke checks on the signed/TestFlight build.
 - Screenshots: capture portrait iPhone screenshots for Dashboard, Tasks, Chat, Memory, Daily Review, and Settings using `APP_STORE_SCREENSHOTS.md`, then run `scripts/verify_app_store_readiness.sh --with-screenshots`.

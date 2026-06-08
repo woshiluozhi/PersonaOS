@@ -26,6 +26,8 @@ Minimum recommended coverage before App Review:
 
 ## Core Smoke Tests
 
+Use `REAL_AI_INTERACTION.md` for the exact Settings and Chat flow when running AI-mode checks.
+
 | ID | Scenario | Steps | Expected result | Status |
 | --- | --- | --- | --- | --- |
 | RD-01 | First launch and demo data | Install fresh build, launch app, inspect Home, Tasks, Chat, Memory, Review, Settings. | App launches without crash; demo/local data appears; tab navigation works. | Not run |
@@ -43,6 +45,7 @@ Minimum recommended coverage before App Review:
 | RD-13 | Portrait-only UI | Rotate the device and inspect each tab. | App remains portrait; no clipped tab labels or overlapping text. | Not run |
 | RD-14 | Public pages | Open final Support URL and Privacy Policy URL over HTTPS. | Both pages load publicly and match the submitted app behavior. | Not run |
 | RD-15 | Screenshot validation | Capture the required six screenshots and run `scripts/verify_app_store_readiness.sh --with-screenshots`. | Screenshot validator passes; screenshots contain no private data or API keys. | Not run |
+| RD-16 | Accessibility smoke | Run common tasks with VoiceOver enabled, Larger Text at 200%, and light/dark appearances. | Do not publish accessibility support claims unless all common tasks pass for that feature. | Not run |
 
 ## Final Archive/TestFlight Checks
 
@@ -64,3 +67,4 @@ Do not submit if any of these are true:
 - App Store privacy answers, age rating, screenshots, or review notes do not match the signed build.
 - `scripts/verify_app_store_readiness.sh --with-build --with-tests` fails.
 - Captured screenshots fail `scripts/verify_app_store_readiness.sh --with-screenshots`.
+- Accessibility Nutrition Label claims have not been verified against `APP_STORE_ACCESSIBILITY.md`.

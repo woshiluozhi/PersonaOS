@@ -54,7 +54,7 @@ Recent successful logs are recorded in `CODEX_REPORT.md`. Full XCTest execution 
 
 ## App Store Readiness
 
-See `APP_STORE_READINESS.md` for the current submission checklist, completed engineering items, and remaining account/legal/App Store Connect tasks. Draft submission copy lives in `APP_STORE_METADATA.md`, App Store privacy answers live in `APP_STORE_PRIVACY_ANSWERS.md`, age rating answers live in `APP_STORE_AGE_RATING.md`, screenshot planning lives in `APP_STORE_SCREENSHOTS.md`, public support/privacy page planning lives in `APP_STORE_PUBLIC_PAGES.md`, the App Store Connect handoff checklist lives in `APP_STORE_SUBMISSION_PACKAGE.md`, and a publishable privacy policy draft lives in `PRIVACY_POLICY_DRAFT.md`.
+See `APP_STORE_READINESS.md` for the current submission checklist, completed engineering items, and remaining account/legal/App Store Connect tasks. Draft submission copy lives in `APP_STORE_METADATA.md`, App Store privacy answers live in `APP_STORE_PRIVACY_ANSWERS.md`, age rating answers live in `APP_STORE_AGE_RATING.md`, accessibility planning lives in `APP_STORE_ACCESSIBILITY.md`, screenshot planning lives in `APP_STORE_SCREENSHOTS.md`, public support/privacy page planning lives in `APP_STORE_PUBLIC_PAGES.md`, the App Store Connect handoff checklist lives in `APP_STORE_SUBMISSION_PACKAGE.md`, and a publishable privacy policy draft lives in `PRIVACY_POLICY_DRAFT.md`.
 
 After capturing App Store screenshots, run `scripts/verify_app_store_readiness.sh --with-screenshots` to validate the complete required screenshot set before upload.
 
@@ -67,3 +67,4 @@ Before archive/upload, run the real-device QA matrix in `APP_STORE_REAL_DEVICE_Q
 - With an OpenAI API Key saved in Settings, chat sends only the current user message and essential context to OpenAI: profile names, current main quest/task state, recent confirmed memories, and recent review summaries.
 - PersonaOS does not send full local chat history or use OpenAI conversation state for follow-up requests.
 - The assistant can suggest memories and tasks, but the user must confirm before anything is written to local data.
+- See `REAL_AI_INTERACTION.md` for the real AI setup, context boundary, fallback behavior, and iPhone test flow.

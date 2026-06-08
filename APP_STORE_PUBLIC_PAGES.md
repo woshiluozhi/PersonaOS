@@ -8,6 +8,7 @@ If GitHub Pages is enabled for the `main` branch and `/docs` folder, use:
 
 - Support URL: `https://woshiluozhi.github.io/PersonaOS/support.html`
 - Privacy Policy URL: `https://woshiluozhi.github.io/PersonaOS/privacy.html`
+- Accessibility URL: `https://woshiluozhi.github.io/PersonaOS/accessibility.html`
 
 If another host is used, keep the page content equivalent and update App Store Connect with the final public URLs.
 
@@ -16,6 +17,7 @@ If another host is used, keep the page content equivalent and update App Store C
 - `docs/index.html`
 - `docs/support.html`
 - `docs/privacy.html`
+- `docs/accessibility.html`
 
 ## Support Page Requirements
 
@@ -34,6 +36,10 @@ Apple requires a Privacy Policy URL for iOS apps. The current privacy page cover
 - In-app deletion controls.
 - Support contact path.
 
+## Accessibility Page Requirements
+
+Accessibility Nutrition Labels are voluntary at the time of this draft, but App Store Connect can display an optional accessibility URL. The current page explains the features PersonaOS is evaluating and avoids claiming unsupported accessibility labels before real-device QA.
+
 ## GitHub Pages Setup
 
 The repository owner can publish the pages by enabling GitHub Pages in repository settings:
@@ -44,7 +50,8 @@ The repository owner can publish the pages by enabling GitHub Pages in repositor
 4. Select branch `main` and folder `/docs`.
 5. Save and wait for GitHub Pages to publish.
 6. Open both candidate URLs and confirm they load over HTTPS.
-7. Enter the final URLs in App Store Connect.
+7. Open the candidate Accessibility URL if completing Accessibility Nutrition Labels.
+8. Enter the final URLs in App Store Connect.
 
 ## No-Go Conditions
 
