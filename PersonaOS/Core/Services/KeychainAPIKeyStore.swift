@@ -17,7 +17,7 @@ struct KeychainAPIKeyStore: APIKeyStore {
     private let account: String
 
     init(
-        service: String = "com.local.PersonaOS.openai",
+        service: String = "com.woshiluozhi.personaos.openai",
         account: String = "openai-api-key"
     ) {
         self.service = service

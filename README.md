@@ -42,7 +42,7 @@ Recent successful logs are recorded in `CODEX_REPORT.md`. Full XCTest execution 
 
 ## App Store Readiness
 
-See `APP_STORE_READINESS.md` for the current submission checklist, completed engineering items, and remaining account/legal/App Store Connect tasks.
+See `APP_STORE_READINESS.md` for the current submission checklist, completed engineering items, and remaining account/legal/App Store Connect tasks. Draft submission copy lives in `APP_STORE_METADATA.md`, and a publishable privacy policy draft lives in `PRIVACY_POLICY_DRAFT.md`.
 
 ## Notes
 

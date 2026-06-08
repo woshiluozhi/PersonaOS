@@ -8,7 +8,7 @@ final class OpenAIClientTests: XCTestCase {
     override func setUp() {
         super.setUp()
         keychainStore = KeychainAPIKeyStore(
-            service: "com.local.PersonaOS.tests.\(UUID().uuidString)",
+            service: "com.woshiluozhi.personaos.tests.\(UUID().uuidString)",
             account: "openai-api-key"
         )
     }

@@ -9,15 +9,18 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Privacy manifest: present at `PersonaOS/Resources/PrivacyInfo.xcprivacy` and wired into the app target resources.
 - Privacy manifest declarations: no tracking; name and user-generated content are declared for app functionality and product personalization.
 - AI mode: OpenAI API Key is saved only in iOS Keychain; chat sends bounded essential context and falls back to local mode.
+- Production-style bundle identifier: app target uses `com.woshiluozhi.personaos`; test target uses `com.woshiluozhi.personaos.tests`.
+- Draft App Store metadata: present in `APP_STORE_METADATA.md`.
+- Draft privacy policy: present in `PRIVACY_POLICY_DRAFT.md`.
 - Build verification: latest App Store readiness work passes `xcodebuild -scheme PersonaOS -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath ./DerivedData build-for-testing`.
 
 ## Remaining Before Submission
 
 - Apple Developer Program: enroll/use a paid Apple Developer Program account for App Store distribution.
-- Bundle identifier: replace `com.local.PersonaOS` with a globally unique production bundle ID owned by the developer account.
+- Bundle identifier: confirm `com.woshiluozhi.personaos` is registered and owned in the Apple Developer account.
 - Signing: configure the App Store distribution team/profile in Xcode or CI.
 - App Store Connect: create the app record, upload screenshots, description, keywords, support URL, and category metadata.
-- Privacy policy: publish a privacy policy URL and enter it in App Store Connect.
+- Privacy policy: publish the draft privacy policy in `PRIVACY_POLICY_DRAFT.md`, then enter its URL in App Store Connect.
 - App privacy answers: disclose user-provided name/content and OpenAI processing accurately in App Store Connect.
 - Export compliance: answer App Store Connect encryption/export questions for HTTPS/TLS and Keychain usage.
 - Production QA: test the archive on real devices, including no-key local mode, invalid-key fallback, real-key AI mode, offline behavior, and destructive data actions.
