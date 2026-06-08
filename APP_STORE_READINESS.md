@@ -14,6 +14,7 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Draft App Store metadata: present in `APP_STORE_METADATA.md`.
 - Draft privacy policy: present in `PRIVACY_POLICY_DRAFT.md`.
 - Draft App Store privacy answers: present in `APP_STORE_PRIVACY_ANSWERS.md`.
+- Draft age rating answers: present in `APP_STORE_AGE_RATING.md`; suggested direction is 4+, not Made for Kids, no higher-rating override, with owner review required.
 - Draft screenshot plan: present in `APP_STORE_SCREENSHOTS.md`; helper script `scripts/capture_app_store_screenshot.sh` captures booted simulator screenshots and checks iPhone portrait dimensions.
 - Draft submission package: present in `APP_STORE_SUBMISSION_PACKAGE.md`; it maps repo evidence to App Store Connect values, screenshot files, QA, and submission steps.
 - Release metadata: app display name is `PersonaOS`, marketing version is `1.0`, build number is `1`, category is Productivity, deployment target is iOS 17.0, and generated launch screen is enabled.
@@ -32,6 +33,7 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Submission package: follow `APP_STORE_SUBMISSION_PACKAGE.md` while creating the app record, entering metadata, running QA, and submitting for review.
 - Privacy policy: publish the draft privacy policy in `PRIVACY_POLICY_DRAFT.md`, then enter its URL in App Store Connect.
 - App privacy answers: review `APP_STORE_PRIVACY_ANSWERS.md`, then disclose user-provided name/content and OpenAI processing accurately in App Store Connect.
+- Age rating: review `APP_STORE_AGE_RATING.md`, answer the live App Store Connect questionnaire, and confirm the calculated rating before submission.
 - Export compliance: confirm `ITSAppUsesNonExemptEncryption = NO` remains accurate for the final build and answer App Store Connect encryption/export questions for HTTPS/TLS and Keychain usage.
 - Production QA: test the archive on real devices, including no-key local mode, invalid-key fallback, real-key AI mode, offline behavior, and destructive data actions.
 - Screenshots: capture portrait iPhone screenshots for Dashboard, Tasks, Chat, Memory, Daily Review, and Settings using `APP_STORE_SCREENSHOTS.md`.
@@ -42,6 +44,7 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Name: PersonaOS
 - Subtitle: Personal mentor for daily focus
 - Category: Productivity
+- Expected age rating: 4+
 - Support URL: to be provided by the account owner
 - Privacy Policy URL: to be provided by the account owner
 

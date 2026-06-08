@@ -23,6 +23,7 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | Metadata draft | `APP_STORE_METADATA.md` | Drafted |
 | Privacy policy draft | `PRIVACY_POLICY_DRAFT.md` | Drafted, needs public URL |
 | Privacy answers | `APP_STORE_PRIVACY_ANSWERS.md` | Drafted, needs account-owner review |
+| Age rating | `APP_STORE_AGE_RATING.md` | Drafted, needs live questionnaire confirmation |
 | Screenshots | `APP_STORE_SCREENSHOTS.md` and `scripts/capture_app_store_screenshot.sh` | Plan ready, final images still need capture |
 | Engineering gate | `scripts/verify_app_store_readiness.sh --with-build --with-tests` | Run before archive |
 
@@ -37,6 +38,7 @@ This package turns the repo-ready work into the concrete App Store Connect check
 | SKU | `personaos-ios-1` or another account-owner controlled identifier |
 | Primary language | English unless the owner prefers Chinese metadata |
 | Content rights | Uses original app UI and first-party app icon artwork |
+| Expected age rating | 4+; not Made for Kids; no higher-rating override |
 | Support URL | Required external URL, not yet provided |
 | Privacy Policy URL | Required external URL after publishing `PRIVACY_POLICY_DRAFT.md` |
 
@@ -103,10 +105,11 @@ Then manually test on a real iPhone:
 5. Enter metadata from `APP_STORE_METADATA.md`.
 6. Publish the privacy policy and enter the Privacy Policy URL.
 7. Enter App Privacy answers from `APP_STORE_PRIVACY_ANSWERS.md`.
-8. Capture and upload screenshots from the screenshot set above.
-9. Archive and upload the signed build.
-10. Select the uploaded build for PersonaOS 1.0.
-11. Add the app version for review, then submit for review.
+8. Answer the Age Ratings questionnaire using `APP_STORE_AGE_RATING.md` and confirm the calculated rating.
+9. Capture and upload screenshots from the screenshot set above.
+10. Archive and upload the signed build.
+11. Select the uploaded build for PersonaOS 1.0.
+12. Add the app version for review, then submit for review.
 
 ## No-Go Conditions
 
@@ -116,5 +119,6 @@ Do not submit if any of these are true:
 - A real API Key appears in source, logs, screenshots, or exported JSON.
 - Distribution signing is not configured.
 - Privacy Policy URL or Support URL is missing.
+- Age rating has not been confirmed in App Store Connect.
 - Screenshots contain private data or clipped/overlapping UI.
 - Real-device QA has not covered local mode, real AI mode, invalid key fallback, and offline fallback.

@@ -8,6 +8,7 @@ Use this draft as a starting point for App Store Connect. Final wording, screens
 - Subtitle: Personal mentor for daily focus
 - Bundle ID: `com.woshiluozhi.personaos`
 - Category: Productivity
+- Expected Age Rating: 4+
 - Content Rights: PersonaOS uses original app UI and generated first-party icon artwork.
 
 ## Promotional Text
