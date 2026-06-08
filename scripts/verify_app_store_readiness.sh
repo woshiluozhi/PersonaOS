@@ -25,6 +25,7 @@ Static checks run by default:
   - App icon is a 1024 x 1024 PNG without alpha.
   - Privacy manifest is valid and declares no tracking.
   - Project uses the production bundle identifiers.
+  - Release metadata has display name, version, build, category, launch screen, and deployment target.
   - App target is iPhone portrait only.
   - App target declares no non-exempt encryption.
   - App target does not declare protected permissions, background modes, or entitlements.
@@ -95,6 +96,13 @@ require_command() {
   fi
 }
 
+plist_raw() {
+  local file="$1"
+  local key="$2"
+
+  plutil -extract "$key" raw -o - "$file" 2>/dev/null || true
+}
+
 PROJECT_FILE="PersonaOS.xcodeproj/project.pbxproj"
 PRIVACY_MANIFEST="PersonaOS/Resources/PrivacyInfo.xcprivacy"
 APP_ICON_CONTENTS="PersonaOS/Resources/Assets.xcassets/AppIcon.appiconset/Contents.json"
@@ -159,6 +167,12 @@ echo "== Xcode project metadata =="
 if [[ -f "$PROJECT_FILE" ]]; then
   require_grep 'PRODUCT_BUNDLE_IDENTIFIER = com\.woshiluozhi\.personaos;' "$PROJECT_FILE" "App bundle identifier is com.woshiluozhi.personaos"
   require_grep 'PRODUCT_BUNDLE_IDENTIFIER = com\.woshiluozhi\.personaos\.tests;' "$PROJECT_FILE" "Test bundle identifier is com.woshiluozhi.personaos.tests"
+  require_grep 'INFOPLIST_KEY_CFBundleDisplayName = PersonaOS;' "$PROJECT_FILE" "App display name is PersonaOS"
+  require_grep 'MARKETING_VERSION = 1\.0;' "$PROJECT_FILE" "Marketing version is set to 1.0"
+  require_grep 'CURRENT_PROJECT_VERSION = 1;' "$PROJECT_FILE" "Build number is set to 1"
+  require_grep 'INFOPLIST_KEY_LSApplicationCategoryType = "public\.app-category\.productivity";' "$PROJECT_FILE" "App category is Productivity"
+  require_grep 'INFOPLIST_KEY_UILaunchScreen_Generation = YES;' "$PROJECT_FILE" "Generated launch screen is enabled"
+  require_grep 'IPHONEOS_DEPLOYMENT_TARGET = 17\.0;' "$PROJECT_FILE" "iOS deployment target is 17.0"
   require_grep 'ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;' "$PROJECT_FILE" "App icon asset is wired to target"
   require_grep 'PrivacyInfo\.xcprivacy' "$PROJECT_FILE" "Privacy manifest is wired to target"
   require_grep 'INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;' "$PROJECT_FILE" "iPhone orientation is portrait"
@@ -243,6 +257,30 @@ if [[ "$WITH_BUILD" == "1" ]]; then
   else
     fail "Release generic iOS build failed"
   fi
+
+  echo
+  echo "== Built Info.plist metadata =="
+  DEBUG_INFO_PLIST="DerivedData/Build/Products/Debug-iphonesimulator/PersonaOS.app/Info.plist"
+  RELEASE_INFO_PLIST="DerivedData/Build/Products/Release-iphoneos/PersonaOS.app/Info.plist"
+
+  for info_plist in "$DEBUG_INFO_PLIST" "$RELEASE_INFO_PLIST"; do
+    if [[ ! -f "$info_plist" ]]; then
+      fail "$info_plist is missing"
+      continue
+    fi
+
+    bundle_name="$(plist_raw "$info_plist" CFBundleDisplayName)"
+    marketing_version="$(plist_raw "$info_plist" CFBundleShortVersionString)"
+    build_number="$(plist_raw "$info_plist" CFBundleVersion)"
+    category="$(plist_raw "$info_plist" LSApplicationCategoryType)"
+    non_exempt_encryption="$(plist_raw "$info_plist" ITSAppUsesNonExemptEncryption)"
+
+    [[ "$bundle_name" == "PersonaOS" ]] && pass "$info_plist display name is PersonaOS" || fail "$info_plist display name is unexpected"
+    [[ "$marketing_version" == "1.0" ]] && pass "$info_plist marketing version is 1.0" || fail "$info_plist marketing version is unexpected"
+    [[ "$build_number" == "1" ]] && pass "$info_plist build number is 1" || fail "$info_plist build number is unexpected"
+    [[ "$category" == "public.app-category.productivity" ]] && pass "$info_plist category is Productivity" || fail "$info_plist category is unexpected"
+    [[ "$non_exempt_encryption" == "false" ]] && pass "$info_plist declares no non-exempt encryption" || fail "$info_plist non-exempt encryption declaration is unexpected"
+  done
 fi
 
 echo

@@ -28,7 +28,7 @@ Run the App Store readiness static gate:
 scripts/verify_app_store_readiness.sh
 ```
 
-Run the same gate plus simulator and Release build verification:
+Run the same gate plus simulator build, Release build, and built Info.plist verification:
 
 ```sh
 scripts/verify_app_store_readiness.sh --with-build

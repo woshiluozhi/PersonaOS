@@ -14,10 +14,11 @@ This document tracks PersonaOS readiness for App Store distribution. It separate
 - Draft App Store metadata: present in `APP_STORE_METADATA.md`.
 - Draft privacy policy: present in `PRIVACY_POLICY_DRAFT.md`.
 - Draft App Store privacy answers: present in `APP_STORE_PRIVACY_ANSWERS.md`.
+- Release metadata: app display name is `PersonaOS`, marketing version is `1.0`, build number is `1`, category is Productivity, deployment target is iOS 17.0, and generated launch screen is enabled.
 - iPhone orientation: restricted to portrait to match the verified UI.
 - In-app review/privacy cues: Settings shows version, bundle identifier, portrait-only status, AI mode boundary, and support/privacy policy reminder.
 - Local data controls: Settings can export local SwiftData content as JSON and can clear chat, memories, reports, ignored memories, or reset demo data. The export excludes the OpenAI API Key stored in Keychain.
-- Automated readiness gate: `scripts/verify_app_store_readiness.sh` checks required docs, App Icon size/alpha, privacy manifest, bundle identifiers, iPhone portrait configuration, export compliance Info.plist key, absence of protected permissions/background modes/extra entitlements, staged local signing IDs, and likely real OpenAI API keys.
+- Automated readiness gate: `scripts/verify_app_store_readiness.sh` checks required docs, App Icon size/alpha, privacy manifest, bundle identifiers, release metadata, iPhone portrait configuration, export compliance Info.plist key, absence of protected permissions/background modes/extra entitlements, staged local signing IDs, and likely real OpenAI API keys. With `--with-build`, it also validates built Debug/Release Info.plist metadata.
 - Build verification: latest App Store readiness work passes 159 unit tests, `xcodebuild -scheme PersonaOS -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath ./DerivedData build-for-testing`, and Release generic iOS build with `CODE_SIGNING_ALLOWED=NO`.
 
 ## Remaining Before Submission
